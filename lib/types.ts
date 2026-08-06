@@ -1,3 +1,13 @@
+export type FarmView =
+  | "dashboard"
+  | "rabbits"
+  | "breeding"
+  | "health"
+  | "feed"
+  | "finance"
+  | "reports"
+  | "settings";
+
 export type RabbitStatus =
   | "Healthy"
   | "Pregnant"
