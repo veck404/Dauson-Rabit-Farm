@@ -462,6 +462,23 @@ export function StockModal({
   close: () => void;
   save: (record: Omit<FeedRecord, "id">, recordId?: string) => void;
 }) {
+  const feedCategories: FeedRecord["category"][] = [
+    "Pellets",
+    "Hay",
+    "Supplement",
+  ];
+  const inventoryCategories: FeedRecord["category"][] = [
+    "Housing",
+    "Feeding equipment",
+    "Watering equipment",
+    "Farm equipment",
+    "Biosecurity",
+    "Medicine",
+    "Supplies",
+  ];
+  const [recordClass, setRecordClass] = useState<"feed" | "inventory">(() =>
+    record && !feedCategories.includes(record.category) ? "inventory" : "feed",
+  );
   const [draft, setDraft] = useState<Omit<FeedRecord, "id">>(() =>
     record
       ? (({ id: _id, ...values }) => values)(record)
@@ -483,6 +500,34 @@ export function StockModal({
     key: Key,
     value: Omit<FeedRecord, "id">[Key],
   ) => setDraft((current) => ({ ...current, [key]: value }));
+  const changeRecordClass = (next: "feed" | "inventory") => {
+    setRecordClass(next);
+    setDraft((current) => ({
+      ...current,
+      category: next === "feed" ? "Pellets" : "Housing",
+      unit: next === "feed" ? "bags" : "units",
+      unitWeightKg: next === "feed" ? 25 : 0,
+    }));
+  };
+  const commonItems =
+    recordClass === "feed"
+      ? ["Grower pellets", "Breeder pellets", "Timothy hay", "Mineral lick"]
+      : [
+          "Rabbit battery cage",
+          "Kindling nest box",
+          "J-feeder",
+          "Pellet feeder",
+          "Hay rack",
+          "Nipple drinker",
+          "Water tank",
+          "PVC water line",
+          "Manure tray",
+          "Transport crate",
+          "Weighing scale",
+          "Wheelbarrow",
+          "Disinfectant sprayer",
+          "Protective gloves",
+        ];
   const currentStatus = stockStatusFor(draft.quantity, draft.reorderLevel);
 
   return (
@@ -503,6 +548,17 @@ export function StockModal({
 
         <form onSubmit={(event) => { event.preventDefault(); save({ ...draft, stockStatus: currentStatus }, record?.id); }} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain bg-[#fbfcfa] p-4 sm:p-7">
+            <fieldset>
+              <legend className="field mb-2">What are you adding? *</legend>
+              <div className="grid grid-cols-2 gap-2 rounded-2xl bg-stone-100 p-1.5">
+                {(["feed", "inventory"] as const).map((kind) => (
+                  <label key={kind} className={`cursor-pointer rounded-xl px-4 py-3 text-center text-xs font-bold transition ${recordClass === kind ? "bg-white text-emerald-700 shadow-sm" : "text-stone-400"}`}>
+                    <input type="radio" name="recordClass" value={kind} checked={recordClass === kind} onChange={() => changeRecordClass(kind)} className="sr-only" />
+                    {kind === "feed" ? "Feed stock" : "Farm inventory"}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <div className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-4 py-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[.12em] text-stone-400">Calculated stock status</p>
@@ -511,12 +567,12 @@ export function StockModal({
               <Status>{currentStatus}</Status>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="field sm:col-span-2">Item name *<input required autoFocus value={draft.item} onChange={(event) => update("item", event.target.value)} placeholder="e.g. Grower pellets" className="control mt-1.5" /></label>
-              <label className="field">Category *<select value={draft.category} onChange={(event) => update("category", event.target.value as FeedRecord["category"])} className="control mt-1.5"><option>Pellets</option><option>Hay</option><option>Supplement</option><option>Medicine</option><option>Supplies</option></select></label>
+              <label className="field sm:col-span-2">Item name *<input required autoFocus list="common-stock-items" value={draft.item} onChange={(event) => update("item", event.target.value)} placeholder={recordClass === "feed" ? "e.g. Grower pellets" : "e.g. Rabbit battery cage"} className="control mt-1.5" /><datalist id="common-stock-items">{commonItems.map((item) => <option key={item} value={item} />)}</datalist></label>
+              <label className="field">Category *<select value={draft.category} onChange={(event) => update("category", event.target.value as FeedRecord["category"])} className="control mt-1.5">{(recordClass === "feed" ? feedCategories : inventoryCategories).map((category) => <option key={category}>{category}</option>)}</select></label>
               <label className="field">Last updated *<input required type="date" value={draft.date} onChange={(event) => update("date", event.target.value)} className="control mt-1.5" /></label>
               <label className="field">Quantity on hand *<input required type="number" min="0" step="0.01" inputMode="decimal" value={draft.quantity} onChange={(event) => update("quantity", Number(event.target.value))} placeholder="0" className="control mt-1.5" /></label>
               <label className="field">Unit *<input required value={draft.unit} onChange={(event) => update("unit", event.target.value)} placeholder="bags, bales, boxes…" className="control mt-1.5" /></label>
-              <label className="field">Weight per unit (kg)<input type="number" min="0" step="0.01" inputMode="decimal" value={draft.unitWeightKg} onChange={(event) => update("unitWeightKg", Number(event.target.value))} placeholder="0 for non-feed items" className="control mt-1.5" /></label>
+              {recordClass === "feed" && <label className="field">Weight per unit (kg)<input type="number" min="0" step="0.01" inputMode="decimal" value={draft.unitWeightKg} onChange={(event) => update("unitWeightKg", Number(event.target.value))} placeholder="e.g. 25" className="control mt-1.5" /></label>}
               <label className="field">Reorder level *<input required type="number" min="0" step="0.01" inputMode="decimal" value={draft.reorderLevel} onChange={(event) => update("reorderLevel", Number(event.target.value))} placeholder="0" className="control mt-1.5" /></label>
               <label className="field">Current stock value (₦) *<input required type="number" min="0" step="1" inputMode="numeric" value={draft.cost} onChange={(event) => update("cost", Number(event.target.value))} placeholder="0" className="control mt-1.5" /></label>
               <label className="field">Supplier *<input required value={draft.supplier} onChange={(event) => update("supplier", event.target.value)} placeholder="Supplier name" className="control mt-1.5" /></label>

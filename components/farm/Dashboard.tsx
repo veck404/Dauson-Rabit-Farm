@@ -87,25 +87,25 @@ export function Dashboard({
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((kpi) => (
-          <Card key={kpi.label} className="px-4 py-3">
+          <Card key={kpi.label} className="px-3 py-1.5 xl:px-4 xl:py-3">
             <div className="flex items-start justify-between">
               <div
-                className={`grid h-8 w-8 place-items-center rounded-lg ${kpi.tone}`}
+                className={`grid h-6 w-6 place-items-center rounded-md xl:h-8 xl:w-8 xl:rounded-lg ${kpi.tone}`}
               >
-                <Icon name={kpi.icon} className="h-4 w-4" />
+                <Icon name={kpi.icon} className="h-3.5 w-3.5 xl:h-4 xl:w-4" />
               </div>
-              <span className="text-[10px] font-semibold text-emerald-700">
+              <span className="text-[9px] font-semibold text-emerald-700 xl:text-[10px]">
                 ● Live
               </span>
             </div>
-            <p className="mt-2 text-[10px] font-semibold uppercase tracking-[.08em] text-stone-400">
+            <p className="mt-1 text-[9px] font-semibold uppercase tracking-[.08em] text-stone-400 xl:mt-2 xl:text-[10px]">
               {kpi.label}
             </p>
-            <div className="mt-0.5 flex items-end justify-between gap-2">
-              <p className="text-xl font-bold tracking-tight text-stone-800">
+            <div className="flex items-end justify-between gap-2 xl:mt-0.5">
+              <p className="text-lg font-bold tracking-tight text-stone-800 xl:text-xl">
                 {kpi.value}
               </p>
-              <p className="pb-1 text-[10px] text-stone-400">{kpi.note}</p>
+              <p className="hidden pb-1 text-[10px] text-stone-400 xl:block">{kpi.note}</p>
             </div>
           </Card>
         ))}

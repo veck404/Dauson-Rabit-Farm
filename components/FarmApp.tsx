@@ -120,7 +120,14 @@ export default function FarmApp() {
     const storedInventory = window.localStorage.getItem("dauson-inventory-v1");
     if (storedInventory) {
       try {
-        setInventory(JSON.parse(storedInventory) as FeedRecord[]);
+        const savedInventory = JSON.parse(storedInventory) as FeedRecord[];
+        setInventory([
+          ...savedInventory,
+          ...feedRecords.filter(
+            (seeded) =>
+              !savedInventory.some((saved) => saved.id === seeded.id),
+          ),
+        ]);
       } catch {
         /* keep seeded inventory */
       }

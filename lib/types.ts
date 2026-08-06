@@ -60,7 +60,17 @@ export type FeedRecord = {
   id: string;
   date: string;
   item: string;
-  category: "Pellets" | "Hay" | "Supplement" | "Medicine" | "Supplies";
+  category:
+    | "Pellets"
+    | "Hay"
+    | "Supplement"
+    | "Medicine"
+    | "Housing"
+    | "Feeding equipment"
+    | "Watering equipment"
+    | "Farm equipment"
+    | "Biosecurity"
+    | "Supplies";
   quantity: number;
   unit: string;
   unitWeightKg: number;

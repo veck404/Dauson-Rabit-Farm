@@ -44,6 +44,9 @@ export const feedRecords: FeedRecord[] = [
   { id: "ST-049", date: "2026-08-02", item: "Timothy hay", category: "Hay", quantity: 8, unit: "bales", unitWeightKg: 25, reorderLevel: 4, cost: 96000, supplier: "Meadow Agro", stockStatus: "Good", notes: "Dry and well ventilated" },
   { id: "ST-048", date: "2026-07-30", item: "Mineral lick", category: "Supplement", quantity: 6, unit: "packs", unitWeightKg: 0, reorderLevel: 8, cost: 24000, supplier: "VetPoint", stockStatus: "Low", notes: "Trace mineral blocks" },
   { id: "ST-047", date: "2026-07-28", item: "Disposable gloves", category: "Supplies", quantity: 2, unit: "boxes", unitWeightKg: 0, reorderLevel: 5, cost: 18500, supplier: "Medline Lagos", stockStatus: "Critical", notes: "Examination gloves" },
+  { id: "ST-046", date: "2026-07-24", item: "Rabbit battery cage", category: "Housing", quantity: 12, unit: "units", unitWeightKg: 0, reorderLevel: 2, cost: 840000, supplier: "AgroHousing Works", stockStatus: "Good", notes: "Galvanised single-tier breeder cages" },
+  { id: "ST-045", date: "2026-07-22", item: "J-feeder", category: "Feeding equipment", quantity: 18, unit: "units", unitWeightKg: 0, reorderLevel: 6, cost: 126000, supplier: "FarmTech Nigeria", stockStatus: "Good", notes: "Galvanised cage-mounted feeders" },
+  { id: "ST-044", date: "2026-07-20", item: "Nipple drinker", category: "Watering equipment", quantity: 9, unit: "units", unitWeightKg: 0, reorderLevel: 10, cost: 36000, supplier: "FarmTech Nigeria", stockStatus: "Low", notes: "Replacement drinker nipples" },
 ];
 
 export const transactions: Transaction[] = [
