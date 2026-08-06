@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type React from "react";
 import type {
   BreedingRecord,
@@ -21,6 +22,8 @@ export function Dashboard({
   profit,
   go,
   addRabbit,
+  addTask,
+  editTask,
 }: {
   rabbits: Rabbit[];
   tasks: FarmTask[];
@@ -32,7 +35,10 @@ export function Dashboard({
   profit: number;
   go: (v: FarmView) => void;
   addRabbit: () => void;
+  addTask: () => void;
+  editTask: (task: FarmTask) => void;
 }) {
+  const orderedTasks = [...tasks].sort((a, b) => a.time.localeCompare(b.time));
   const kpis = [
     {
       label: "Registered rabbits",
@@ -71,7 +77,7 @@ export function Dashboard({
             Thursday, 06 August 2026
           </p>
           <h2 className="mt-1 font-serif text-3xl font-bold tracking-tight text-[#183e34] sm:text-4xl">
-            Good morning, David.
+            Good morning, Esther.
           </h2>
           <p className="mt-2 text-sm text-stone-500">
             Here’s what is happening across Dauson Farm today.
@@ -105,7 +111,9 @@ export function Dashboard({
               <p className="text-lg font-bold tracking-tight text-stone-800 xl:text-xl">
                 {kpi.value}
               </p>
-              <p className="hidden pb-1 text-[10px] text-stone-400 xl:block">{kpi.note}</p>
+              <p className="hidden pb-1 text-[10px] text-stone-400 xl:block">
+                {kpi.note}
+              </p>
             </div>
           </Card>
         ))}
@@ -204,12 +212,15 @@ export function Dashboard({
             </span>
           </div>
           <div className="divide-y divide-stone-100 px-5">
-            {tasks.map((task) => (
-              <label
-                key={task.id}
-                className="flex cursor-pointer items-center gap-3 py-3.5"
-              >
+            {orderedTasks.map((task) => (
+              <div key={task.id} className="flex items-center gap-3 py-3.5">
                 <button
+                  type="button"
+                  aria-label={
+                    task.done
+                      ? `Mark ${task.title} incomplete`
+                      : `Mark ${task.title} complete`
+                  }
                   onClick={() =>
                     setTasks((current) =>
                       current.map((t) =>
@@ -228,17 +239,30 @@ export function Dashboard({
                     {task.title}
                   </span>
                   <span className="mt-0.5 block text-[10px] text-stone-400">
-                    {task.time} · {task.group}
+                    {formatTaskTime(task.time)} · {task.group}
                   </span>
                 </span>
                 {task.priority === "High" && !task.done && (
                   <i className="h-2 w-2 rounded-full bg-rose-400" />
                 )}
-              </label>
+                <button
+                  type="button"
+                  aria-label={`Edit task ${task.title}`}
+                  title="Edit task"
+                  onClick={() => editTask(task)}
+                  className="action shrink-0"
+                >
+                  <Icon name="edit" className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))}
           </div>
           <div className="p-4 pt-2">
-            <button className="w-full rounded-xl border border-dashed border-stone-300 py-2.5 text-[11px] font-semibold text-stone-500 hover:border-emerald-600 hover:text-emerald-700">
+            <button
+              type="button"
+              onClick={addTask}
+              className="w-full rounded-xl border border-dashed border-stone-300 py-2.5 text-[11px] font-semibold text-stone-500 hover:border-emerald-600 hover:text-emerald-700"
+            >
               + Add farm task
             </button>
           </div>
@@ -271,7 +295,7 @@ export function Dashboard({
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-              {breeding.slice(0, 4).map((r) => (
+                {breeding.slice(0, 4).map((r) => (
                   <tr key={r.id} className="text-xs">
                     <td className="px-5 py-3 font-semibold">
                       {r.doe.split(" · ")[0]}
@@ -338,6 +362,167 @@ export function Dashboard({
             Manage inventory <Icon name="arrow" className="h-3 w-3" />
           </button>
         </Card>
+      </div>
+    </div>
+  );
+}
+
+const formatTaskTime = (value: string) => {
+  const [hours, minutes] = value.split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return value;
+  const suffix = hours >= 12 ? "PM" : "AM";
+  return `${hours % 12 || 12}:${String(minutes).padStart(2, "0")} ${suffix}`;
+};
+
+export function TaskModal({
+  task,
+  close,
+  save,
+}: {
+  task: FarmTask | null;
+  close: () => void;
+  save: (task: Omit<FarmTask, "id">, taskId?: string) => void;
+}) {
+  const [draft, setDraft] = useState<Omit<FarmTask, "id">>(() =>
+    task
+      ? (({ id: _id, ...values }) => values)(task)
+      : {
+          title: "",
+          time: "07:00",
+          group: "All sections",
+          priority: "Normal",
+          done: false,
+        },
+  );
+  const update = <Key extends keyof Omit<FarmTask, "id">>(
+    key: Key,
+    value: Omit<FarmTask, "id">[Key],
+  ) => setDraft((current) => ({ ...current, [key]: value }));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50 p-3 backdrop-blur-sm sm:p-6">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-modal-title"
+        className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-xl flex-col overflow-hidden rounded-[22px] bg-white shadow-2xl"
+      >
+        <header className="relative shrink-0 overflow-hidden bg-[#123f34] px-5 py-5 text-white sm:px-7 sm:py-6">
+          <div className="absolute -right-8 -top-12 h-40 w-40 rounded-full border-[28px] border-white/5" />
+          <div className="relative flex items-start gap-4">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#e9b949] text-[#123f34]">
+              <Icon name="calendar" className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] font-bold uppercase tracking-[.18em] text-emerald-100/60">
+                Today’s work plan
+              </p>
+              <h2
+                id="task-modal-title"
+                className="mt-1 font-serif text-2xl font-bold"
+              >
+                {task ? `Edit ${task.id}` : "Add farm task"}
+              </h2>
+              <p className="mt-1 text-[11px] text-emerald-50/60">
+                Schedule and prioritise today’s farm work.
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-label="Close task form"
+              onClick={close}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white hover:bg-white/20"
+            >
+              <Icon name="close" className="h-5 w-5" />
+            </button>
+          </div>
+        </header>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            save(draft, task?.id);
+          }}
+        >
+          <div className="grid gap-4 bg-[#fbfcfa] p-4 sm:grid-cols-2 sm:p-7">
+            <label className="field sm:col-span-2">
+              Task *
+              <input
+                required
+                autoFocus
+                value={draft.title}
+                onChange={(event) => update("title", event.target.value)}
+                placeholder="What needs to be done?"
+                className="control mt-1.5"
+              />
+            </label>
+            <label className="field">
+              Time *
+              <input
+                required
+                type="time"
+                value={draft.time}
+                onChange={(event) => update("time", event.target.value)}
+                className="control mt-1.5"
+              />
+            </label>
+            <label className="field">
+              Work area *
+              <select
+                value={draft.group}
+                onChange={(event) => update("group", event.target.value)}
+                className="control mt-1.5"
+              >
+                <option>All sections</option>
+                <option>Feeding</option>
+                <option>Breeding</option>
+                <option>Health</option>
+                <option>Grow-out</option>
+                <option>Inventory</option>
+                <option>Cleaning</option>
+                <option>Maintenance</option>
+              </select>
+            </label>
+            <label className="field">
+              Priority *
+              <select
+                value={draft.priority}
+                onChange={(event) =>
+                  update("priority", event.target.value as FarmTask["priority"])
+                }
+                className="control mt-1.5"
+              >
+                <option>Normal</option>
+                <option>High</option>
+              </select>
+            </label>
+            <label className="field">
+              Progress *
+              <select
+                value={draft.done ? "Completed" : "Pending"}
+                onChange={(event) =>
+                  update("done", event.target.value === "Completed")
+                }
+                className="control mt-1.5"
+              >
+                <option>Pending</option>
+                <option>Completed</option>
+              </select>
+            </label>
+          </div>
+          <footer className="flex gap-2 border-t border-stone-200 bg-white px-4 py-4 sm:justify-end sm:px-7">
+            <button
+              type="button"
+              onClick={close}
+              className="btn-secondary flex-1 sm:flex-none"
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary flex-1 sm:flex-none">
+              <Icon name="check" className="h-4 w-4" />
+              {task ? "Save changes" : "Save task"}
+            </button>
+          </footer>
+        </form>
       </div>
     </div>
   );

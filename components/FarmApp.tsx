@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "./Icon";
-import { Dashboard } from "./farm/Dashboard";
+import { Dashboard, TaskModal } from "./farm/Dashboard";
 import { Finance, TransactionModal } from "./farm/Finance";
 import {
   Breeding,
@@ -24,6 +24,7 @@ import {
 } from "../lib/farm-data";
 import type {
   BreedingRecord,
+  FarmTask,
   FarmView,
   FeedRecord,
   HealthRecord,
@@ -69,7 +70,7 @@ export default function FarmApp() {
   const [inventory, setInventory] = useState<FeedRecord[]>(feedRecords);
   const [breeding, setBreeding] = useState<BreedingRecord[]>(breedingRecords);
   const [health, setHealth] = useState<HealthRecord[]>(healthRecords);
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState<FarmTask[]>(initialTasks);
   const [hydrated, setHydrated] = useState(false);
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [transactionModal, setTransactionModal] = useState(false);
@@ -78,10 +79,13 @@ export default function FarmApp() {
   const [stockModal, setStockModal] = useState(false);
   const [editingStock, setEditingStock] = useState<FeedRecord | null>(null);
   const [breedingModal, setBreedingModal] = useState(false);
-  const [editingBreeding, setEditingBreeding] =
-    useState<BreedingRecord | null>(null);
+  const [editingBreeding, setEditingBreeding] = useState<BreedingRecord | null>(
+    null,
+  );
   const [healthModal, setHealthModal] = useState(false);
   const [editingHealth, setEditingHealth] = useState<HealthRecord | null>(null);
+  const [taskModal, setTaskModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<FarmTask | null>(null);
   const [draft, setDraft] = useState<Omit<Rabbit, "id"> & { id?: string }>(
     emptyRabbit,
   );
@@ -124,8 +128,7 @@ export default function FarmApp() {
         setInventory([
           ...savedInventory,
           ...feedRecords.filter(
-            (seeded) =>
-              !savedInventory.some((saved) => saved.id === seeded.id),
+            (seeded) => !savedInventory.some((saved) => saved.id === seeded.id),
           ),
         ]);
       } catch {
@@ -146,6 +149,14 @@ export default function FarmApp() {
         setHealth(JSON.parse(storedHealth) as HealthRecord[]);
       } catch {
         /* keep seeded health records */
+      }
+    }
+    const storedTasks = window.localStorage.getItem("dauson-tasks-v1");
+    if (storedTasks) {
+      try {
+        setTasks(JSON.parse(storedTasks) as FarmTask[]);
+      } catch {
+        /* keep seeded tasks */
       }
     }
     setHydrated(true);
@@ -178,11 +189,12 @@ export default function FarmApp() {
   }, [breeding, hydrated]);
   useEffect(() => {
     if (hydrated)
-      window.localStorage.setItem(
-        "dauson-health-v1",
-        JSON.stringify(health),
-      );
+      window.localStorage.setItem("dauson-health-v1", JSON.stringify(health));
   }, [health, hydrated]);
+  useEffect(() => {
+    if (hydrated)
+      window.localStorage.setItem("dauson-tasks-v1", JSON.stringify(tasks));
+  }, [tasks, hydrated]);
   useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(""), 2800);
@@ -214,9 +226,7 @@ export default function FarmApp() {
   const healthy = rabbits.filter((r) =>
     ["Healthy", "Pregnant", "Nursing"].includes(r.status),
   ).length;
-  const dueThisMonth = breeding.filter(
-    (r) => r.status === "Pregnant",
-  ).length;
+  const dueThisMonth = breeding.filter((r) => r.status === "Pregnant").length;
   const income = financeTransactions
     .filter((t) => t.type === "Income")
     .reduce((sum, t) => sum + t.amount, 0);
@@ -352,10 +362,7 @@ export default function FarmApp() {
     setEditingBreeding(null);
     setToast("Mating added to the breeding register");
   };
-  const saveHealth = (
-    record: Omit<HealthRecord, "id">,
-    recordId?: string,
-  ) => {
+  const saveHealth = (record: Omit<HealthRecord, "id">, recordId?: string) => {
     if (recordId) {
       setHealth((current) =>
         current.map((item) =>
@@ -368,10 +375,8 @@ export default function FarmApp() {
       return;
     }
     const next =
-      Math.max(
-        0,
-        ...health.map((item) => Number(item.id.replace(/\D/g, ""))),
-      ) + 1;
+      Math.max(0, ...health.map((item) => Number(item.id.replace(/\D/g, "")))) +
+      1;
     setHealth((current) => [
       { ...record, id: `HL-${String(next).padStart(3, "0")}` },
       ...current,
@@ -379,6 +384,26 @@ export default function FarmApp() {
     setHealthModal(false);
     setEditingHealth(null);
     setToast("Entry added to the health register");
+  };
+  const saveTask = (task: Omit<FarmTask, "id">, taskId?: string) => {
+    if (taskId) {
+      setTasks((current) =>
+        current.map((item) =>
+          item.id === taskId ? { ...task, id: taskId } : item,
+        ),
+      );
+      setTaskModal(false);
+      setEditingTask(null);
+      setToast(`${taskId} was updated`);
+      return;
+    }
+    const next =
+      Math.max(0, ...tasks.map((item) => Number(item.id.replace(/\D/g, "")))) +
+      1;
+    setTasks((current) => [{ ...task, id: `T-${next}` }, ...current]);
+    setTaskModal(false);
+    setEditingTask(null);
+    setToast("Task added to today’s work plan");
   };
 
   const title = nav.find((item) => item.id === view)?.label ?? "Settings";
@@ -421,11 +446,15 @@ export default function FarmApp() {
                 <Icon name={item.icon} className="h-[18px] w-[18px]" />
                 <span>{item.label}</span>
                 {item.id === "health" &&
-                  health.filter((record) => record.status === "Ongoing").length > 0 && (
-                  <span className="ml-auto rounded-full bg-[#e9b949] px-1.5 py-0.5 text-[9px] font-bold text-[#123f34]">
-                    {health.filter((record) => record.status === "Ongoing").length}
-                  </span>
-                )}
+                  health.filter((record) => record.status === "Ongoing")
+                    .length > 0 && (
+                    <span className="ml-auto rounded-full bg-[#e9b949] px-1.5 py-0.5 text-[9px] font-bold text-[#123f34]">
+                      {
+                        health.filter((record) => record.status === "Ongoing")
+                          .length
+                      }
+                    </span>
+                  )}
               </button>
             ))}
           </nav>
@@ -442,7 +471,7 @@ export default function FarmApp() {
                 DA
               </div>
               <div className="min-w-0">
-                <p className="truncate text-xs font-semibold">David Afolayan</p>
+                <p className="truncate text-xs font-semibold">Esther</p>
                 <p className="truncate text-[10px] text-emerald-50/45">
                   Farm administrator
                 </p>
@@ -517,6 +546,14 @@ export default function FarmApp() {
               profit={income - expense}
               go={go}
               addRabbit={addRabbit}
+              addTask={() => {
+                setEditingTask(null);
+                setTaskModal(true);
+              }}
+              editTask={(task) => {
+                setEditingTask(task);
+                setTaskModal(true);
+              }}
             />
           )}
           {view === "rabbits" && (
@@ -671,6 +708,16 @@ export default function FarmApp() {
             setEditingHealth(null);
           }}
           save={saveHealth}
+        />
+      )}
+      {taskModal && (
+        <TaskModal
+          task={editingTask}
+          close={() => {
+            setTaskModal(false);
+            setEditingTask(null);
+          }}
+          save={saveTask}
         />
       )}
       {toast && (

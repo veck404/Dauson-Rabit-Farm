@@ -142,7 +142,13 @@ export function Reports({
   );
 }
 
-export function Settings({ saved, onSave }: { saved: boolean; onSave: () => void }) {
+export function Settings({
+  saved,
+  onSave,
+}: {
+  saved: boolean;
+  onSave: () => void;
+}) {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
@@ -164,7 +170,7 @@ export function Settings({ saved, onSave }: { saved: boolean; onSave: () => void
           </label>
           <label className="field">
             Manager
-            <input className="control mt-1.5" defaultValue="David Afolayan" />
+            <input className="control mt-1.5" defaultValue="Esther" />
           </label>
           <label className="field">
             Phone
@@ -228,4 +234,3 @@ export function Settings({ saved, onSave }: { saved: boolean; onSave: () => void
     </div>
   );
 }
-

@@ -58,8 +58,8 @@ export const transactions: Transaction[] = [
 ];
 
 export const initialTasks: FarmTask[] = [
-  { id: "T-1", title: "Morning feed & water check", time: "7:00 AM", group: "All sections", priority: "High", done: true },
-  { id: "T-2", title: "Palpate Ivy (DF-2460)", time: "9:30 AM", group: "Breeding", priority: "High", done: false },
-  { id: "T-3", title: "Clover medication", time: "12:00 PM", group: "Health", priority: "High", done: false },
-  { id: "T-4", title: "Weigh grow-out group G-12", time: "3:00 PM", group: "Grow-out", priority: "Normal", done: false },
+  { id: "T-1", title: "Morning feed & water check", time: "07:00", group: "All sections", priority: "High", done: true },
+  { id: "T-2", title: "Palpate Ivy (DF-2460)", time: "09:30", group: "Breeding", priority: "High", done: false },
+  { id: "T-3", title: "Clover medication", time: "12:00", group: "Health", priority: "High", done: false },
+  { id: "T-4", title: "Weigh grow-out group G-12", time: "15:00", group: "Grow-out", priority: "Normal", done: false },
 ];
