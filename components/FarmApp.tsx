@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { Icon } from "./Icon";
+import { Card, Status } from "./farm/ui";
+import {
+  age,
+  daysUntil,
+  exportExcel,
+  exportPdf,
+  money,
+  rabbitRows,
+  shortDate,
+} from "../lib/farm-utils";
+import type { ExportRow } from "../lib/farm-utils";
 import {
   breedingRecords,
   feedRecords,
@@ -24,7 +32,6 @@ type View =
   | "finance"
   | "reports"
   | "settings";
-type ExportRow = Record<string, string | number>;
 
 const nav: {
   id: View;
@@ -54,143 +61,6 @@ const emptyRabbit: Omit<Rabbit, "id"> = {
   acquiredDate: new Date().toISOString().slice(0, 10),
   notes: "",
 };
-
-const money = (value: number) =>
-  new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  }).format(value);
-const shortDate = (value: string) =>
-  new Intl.DateTimeFormat("en-NG", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(`${value}T12:00:00`));
-const daysUntil = (value: string) =>
-  Math.ceil(
-    (new Date(`${value}T12:00:00`).getTime() -
-      new Date("2026-08-06T12:00:00").getTime()) /
-      86400000,
-  );
-const age = (birth: string) => {
-  const months = Math.max(
-    0,
-    Math.floor(
-      (new Date("2026-08-06").getTime() - new Date(birth).getTime()) /
-        2629800000,
-    ),
-  );
-  return months >= 12
-    ? `${Math.floor(months / 12)}y ${months % 12}m`
-    : `${months}m`;
-};
-
-const rabbitRows = (items: Rabbit[]): ExportRow[] =>
-  items.map((r) => ({
-    ID: r.id,
-    Tag: r.tag,
-    Name: r.name,
-    Breed: r.breed,
-    Sex: r.sex,
-    Status: r.status,
-    Purpose: r.purpose,
-    "Date of birth": r.dateOfBirth,
-    "Weight (kg)": r.weightKg,
-    Cage: r.cage,
-    Color: r.color,
-    Acquired: r.acquiredDate,
-    Notes: r.notes,
-  }));
-
-function exportExcel(rows: ExportRow[], name: string) {
-  const workbook = XLSX.utils.book_new();
-  const sheet = XLSX.utils.json_to_sheet(rows);
-  sheet["!cols"] = Object.keys(rows[0] ?? { Record: "" }).map(() => ({
-    wch: 20,
-  }));
-  XLSX.utils.book_append_sheet(workbook, sheet, name.slice(0, 31));
-  XLSX.writeFile(
-    workbook,
-    `dauson-${name.toLowerCase().replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.xlsx`,
-  );
-}
-
-function exportPdf(rows: ExportRow[], title: string) {
-  const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
-  const columns = Object.keys(rows[0] ?? { Record: "No records" }).slice(0, 9);
-  doc.setFillColor(15, 70, 59);
-  doc.rect(0, 0, 842, 70, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(19);
-  doc.text(`Dauson Farm · ${title}`, 34, 32);
-  doc.setFontSize(9);
-  doc.text(
-    `Generated 06 Aug 2026  •  ${rows.length} records  •  Farm management archive`,
-    34,
-    50,
-  );
-  autoTable(doc, {
-    head: [columns],
-    body: rows.map((row) => columns.map((key) => String(row[key] ?? "—"))),
-    startY: 88,
-    styles: { fontSize: 8, cellPadding: 5, textColor: [46, 54, 49] },
-    headStyles: {
-      fillColor: [226, 238, 231],
-      textColor: [15, 70, 59],
-      fontStyle: "bold",
-    },
-    alternateRowStyles: { fillColor: [248, 250, 248] },
-    margin: { left: 34, right: 34 },
-  });
-  doc.save(
-    `dauson-${title.toLowerCase().replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`,
-  );
-}
-
-function Status({ children }: { children: string }) {
-  const tone: Record<string, string> = {
-    Healthy: "bg-emerald-50 text-emerald-700 ring-emerald-600/15",
-    Pregnant: "bg-violet-50 text-violet-700 ring-violet-600/15",
-    Nursing: "bg-sky-50 text-sky-700 ring-sky-600/15",
-    Treatment: "bg-amber-50 text-amber-800 ring-amber-600/15",
-    Quarantine: "bg-rose-50 text-rose-700 ring-rose-600/15",
-    Ongoing: "bg-amber-50 text-amber-800 ring-amber-600/15",
-    Completed: "bg-emerald-50 text-emerald-700 ring-emerald-600/15",
-    Due: "bg-rose-50 text-rose-700 ring-rose-600/15",
-    Paid: "bg-emerald-50 text-emerald-700 ring-emerald-600/15",
-    Pending: "bg-amber-50 text-amber-800 ring-amber-600/15",
-    Good: "bg-emerald-50 text-emerald-700 ring-emerald-600/15",
-    Low: "bg-amber-50 text-amber-800 ring-amber-600/15",
-    Critical: "bg-rose-50 text-rose-700 ring-rose-600/15",
-    Kindled: "bg-sky-50 text-sky-700 ring-sky-600/15",
-    "Palpation due": "bg-amber-50 text-amber-800 ring-amber-600/15",
-    "Not pregnant": "bg-stone-100 text-stone-600 ring-stone-500/15",
-  };
-  return (
-    <span
-      className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${tone[children] ?? "bg-stone-100 text-stone-600 ring-stone-500/15"}`}
-    >
-      {children}
-    </span>
-  );
-}
-
-function Card({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <section
-      className={`rounded-2xl border border-stone-200/80 bg-white shadow-sm ${className}`}
-    >
-      {children}
-    </section>
-  );
-}
 
 export default function FarmApp() {
   const [view, setView] = useState<View>("dashboard");
