@@ -1,5 +1,10 @@
-import { breedingRecords, healthRecords } from "../../lib/farm-data";
-import type { FeedRecord, Rabbit, Transaction } from "../../lib/types";
+import type {
+  BreedingRecord,
+  FeedRecord,
+  HealthRecord,
+  Rabbit,
+  Transaction,
+} from "../../lib/types";
 import type { ExportRow } from "../../lib/farm-utils";
 import { exportExcel, exportPdf, rabbitRows } from "../../lib/farm-utils";
 import { Icon } from "../Icon";
@@ -7,10 +12,14 @@ import { Card } from "./ui";
 
 export function Reports({
   rabbits,
+  breeding,
+  health,
   inventory,
   transactions,
 }: {
   rabbits: Rabbit[];
+  breeding: BreedingRecord[];
+  health: HealthRecord[];
   inventory: FeedRecord[];
   transactions: Transaction[];
 }) {
@@ -25,15 +34,15 @@ export function Reports({
     {
       name: "Breeding performance",
       desc: "Matings, pregnancy outcomes, kindling and litter survival",
-      count: breedingRecords.length,
-      rows: breedingRecords as unknown as ExportRow[],
+      count: breeding.length,
+      rows: breeding as unknown as ExportRow[],
       icon: "dna" as const,
     },
     {
       name: "Health & medication",
       desc: "Checks, treatments, vaccinations and future care dates",
-      count: healthRecords.length,
-      rows: healthRecords as unknown as ExportRow[],
+      count: health.length,
+      rows: health as unknown as ExportRow[],
       icon: "heart" as const,
     },
     {

@@ -1,6 +1,11 @@
 import type React from "react";
-import { breedingRecords } from "../../lib/farm-data";
-import type { FarmTask, FarmView, FeedRecord, Rabbit } from "../../lib/types";
+import type {
+  BreedingRecord,
+  FarmTask,
+  FarmView,
+  FeedRecord,
+  Rabbit,
+} from "../../lib/types";
 import { daysUntil, money, shortDate } from "../../lib/farm-utils";
 import { Icon } from "../Icon";
 import { Card, Status } from "./ui";
@@ -10,6 +15,7 @@ export function Dashboard({
   tasks,
   setTasks,
   inventory,
+  breeding,
   healthy,
   dueThisMonth,
   profit,
@@ -20,6 +26,7 @@ export function Dashboard({
   tasks: FarmTask[];
   setTasks: React.Dispatch<React.SetStateAction<FarmTask[]>>;
   inventory: FeedRecord[];
+  breeding: BreedingRecord[];
   healthy: number;
   dueThisMonth: number;
   profit: number;
@@ -264,7 +271,7 @@ export function Dashboard({
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-                {breedingRecords.slice(0, 4).map((r) => (
+              {breeding.slice(0, 4).map((r) => (
                   <tr key={r.id} className="text-xs">
                     <td className="px-5 py-3 font-semibold">
                       {r.doe.split(" · ")[0]}

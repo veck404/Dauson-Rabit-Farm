@@ -4,17 +4,32 @@ import { useEffect, useMemo, useState } from "react";
 import { Icon } from "./Icon";
 import { Dashboard } from "./farm/Dashboard";
 import { Finance, TransactionModal } from "./farm/Finance";
-import { Breeding, Feed, Health, StockModal } from "./farm/Operations";
+import {
+  Breeding,
+  BreedingModal,
+  Feed,
+  Health,
+  HealthModal,
+  StockModal,
+} from "./farm/Operations";
 import { RabbitModal, RabbitRegistry } from "./farm/RabbitRegistry";
 import { Reports, Settings } from "./farm/ReportsSettings";
 import {
   breedingRecords,
   feedRecords,
+  healthRecords,
   initialRabbits,
   initialTasks,
   transactions,
 } from "../lib/farm-data";
-import type { FarmView, FeedRecord, Rabbit, Transaction } from "../lib/types";
+import type {
+  BreedingRecord,
+  FarmView,
+  FeedRecord,
+  HealthRecord,
+  Rabbit,
+  Transaction,
+} from "../lib/types";
 
 const nav: {
   id: FarmView;
@@ -52,6 +67,8 @@ export default function FarmApp() {
   const [financeTransactions, setFinanceTransactions] =
     useState<Transaction[]>(transactions);
   const [inventory, setInventory] = useState<FeedRecord[]>(feedRecords);
+  const [breeding, setBreeding] = useState<BreedingRecord[]>(breedingRecords);
+  const [health, setHealth] = useState<HealthRecord[]>(healthRecords);
   const [tasks, setTasks] = useState(initialTasks);
   const [hydrated, setHydrated] = useState(false);
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
@@ -60,6 +77,11 @@ export default function FarmApp() {
     useState<Transaction | null>(null);
   const [stockModal, setStockModal] = useState(false);
   const [editingStock, setEditingStock] = useState<FeedRecord | null>(null);
+  const [breedingModal, setBreedingModal] = useState(false);
+  const [editingBreeding, setEditingBreeding] =
+    useState<BreedingRecord | null>(null);
+  const [healthModal, setHealthModal] = useState(false);
+  const [editingHealth, setEditingHealth] = useState<HealthRecord | null>(null);
   const [draft, setDraft] = useState<Omit<Rabbit, "id"> & { id?: string }>(
     emptyRabbit,
   );
@@ -103,6 +125,22 @@ export default function FarmApp() {
         /* keep seeded inventory */
       }
     }
+    const storedBreeding = window.localStorage.getItem("dauson-breeding-v1");
+    if (storedBreeding) {
+      try {
+        setBreeding(JSON.parse(storedBreeding) as BreedingRecord[]);
+      } catch {
+        /* keep seeded breeding records */
+      }
+    }
+    const storedHealth = window.localStorage.getItem("dauson-health-v1");
+    if (storedHealth) {
+      try {
+        setHealth(JSON.parse(storedHealth) as HealthRecord[]);
+      } catch {
+        /* keep seeded health records */
+      }
+    }
     setHydrated(true);
   }, []);
 
@@ -124,6 +162,20 @@ export default function FarmApp() {
         JSON.stringify(inventory),
       );
   }, [inventory, hydrated]);
+  useEffect(() => {
+    if (hydrated)
+      window.localStorage.setItem(
+        "dauson-breeding-v1",
+        JSON.stringify(breeding),
+      );
+  }, [breeding, hydrated]);
+  useEffect(() => {
+    if (hydrated)
+      window.localStorage.setItem(
+        "dauson-health-v1",
+        JSON.stringify(health),
+      );
+  }, [health, hydrated]);
   useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(""), 2800);
@@ -155,7 +207,7 @@ export default function FarmApp() {
   const healthy = rabbits.filter((r) =>
     ["Healthy", "Pregnant", "Nursing"].includes(r.status),
   ).length;
-  const dueThisMonth = breedingRecords.filter(
+  const dueThisMonth = breeding.filter(
     (r) => r.status === "Pregnant",
   ).length;
   const income = financeTransactions
@@ -265,6 +317,62 @@ export default function FarmApp() {
     setEditingStock(null);
     setToast(`${stock.item} was added to inventory`);
   };
+  const saveBreeding = (
+    record: Omit<BreedingRecord, "id">,
+    recordId?: string,
+  ) => {
+    if (recordId) {
+      setBreeding((current) =>
+        current.map((item) =>
+          item.id === recordId ? { ...record, id: recordId } : item,
+        ),
+      );
+      setBreedingModal(false);
+      setEditingBreeding(null);
+      setToast(`${recordId} was updated`);
+      return;
+    }
+    const next =
+      Math.max(
+        0,
+        ...breeding.map((item) => Number(item.id.replace(/\D/g, ""))),
+      ) + 1;
+    setBreeding((current) => [
+      { ...record, id: `BR-${String(next).padStart(3, "0")}` },
+      ...current,
+    ]);
+    setBreedingModal(false);
+    setEditingBreeding(null);
+    setToast("Mating added to the breeding register");
+  };
+  const saveHealth = (
+    record: Omit<HealthRecord, "id">,
+    recordId?: string,
+  ) => {
+    if (recordId) {
+      setHealth((current) =>
+        current.map((item) =>
+          item.id === recordId ? { ...record, id: recordId } : item,
+        ),
+      );
+      setHealthModal(false);
+      setEditingHealth(null);
+      setToast(`${recordId} was updated`);
+      return;
+    }
+    const next =
+      Math.max(
+        0,
+        ...health.map((item) => Number(item.id.replace(/\D/g, ""))),
+      ) + 1;
+    setHealth((current) => [
+      { ...record, id: `HL-${String(next).padStart(3, "0")}` },
+      ...current,
+    ]);
+    setHealthModal(false);
+    setEditingHealth(null);
+    setToast("Entry added to the health register");
+  };
 
   const title = nav.find((item) => item.id === view)?.label ?? "Settings";
   return (
@@ -305,9 +413,10 @@ export default function FarmApp() {
               >
                 <Icon name={item.icon} className="h-[18px] w-[18px]" />
                 <span>{item.label}</span>
-                {item.id === "health" && (
+                {item.id === "health" &&
+                  health.filter((record) => record.status === "Ongoing").length > 0 && (
                   <span className="ml-auto rounded-full bg-[#e9b949] px-1.5 py-0.5 text-[9px] font-bold text-[#123f34]">
-                    2
+                    {health.filter((record) => record.status === "Ongoing").length}
                   </span>
                 )}
               </button>
@@ -395,6 +504,7 @@ export default function FarmApp() {
               tasks={tasks}
               setTasks={setTasks}
               inventory={inventory}
+              breeding={breeding}
               healthy={healthy}
               dueThisMonth={dueThisMonth}
               profit={income - expense}
@@ -428,8 +538,33 @@ export default function FarmApp() {
               }}
             />
           )}
-          {view === "breeding" && <Breeding />}
-          {view === "health" && <Health />}
+          {view === "breeding" && (
+            <Breeding
+              records={breeding}
+              add={() => {
+                setEditingBreeding(null);
+                setBreedingModal(true);
+              }}
+              edit={(record) => {
+                setEditingBreeding(record);
+                setBreedingModal(true);
+              }}
+            />
+          )}
+          {view === "health" && (
+            <Health
+              records={health}
+              rabbitCount={rabbits.length}
+              add={() => {
+                setEditingHealth(null);
+                setHealthModal(true);
+              }}
+              edit={(record) => {
+                setEditingHealth(record);
+                setHealthModal(true);
+              }}
+            />
+          )}
           {view === "feed" && (
             <Feed
               inventory={inventory}
@@ -461,6 +596,8 @@ export default function FarmApp() {
           {view === "reports" && (
             <Reports
               rabbits={rabbits}
+              breeding={breeding}
+              health={health}
               inventory={inventory}
               transactions={financeTransactions}
             />
@@ -505,6 +642,28 @@ export default function FarmApp() {
             setEditingStock(null);
           }}
           save={saveStock}
+        />
+      )}
+      {breedingModal && (
+        <BreedingModal
+          record={editingBreeding}
+          rabbits={rabbits}
+          close={() => {
+            setBreedingModal(false);
+            setEditingBreeding(null);
+          }}
+          save={saveBreeding}
+        />
+      )}
+      {healthModal && (
+        <HealthModal
+          record={editingHealth}
+          rabbits={rabbits}
+          close={() => {
+            setHealthModal(false);
+            setEditingHealth(null);
+          }}
+          save={saveHealth}
         />
       )}
       {toast && (
