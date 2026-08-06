@@ -39,11 +39,11 @@ export const healthRecords: HealthRecord[] = [
 ];
 
 export const feedRecords: FeedRecord[] = [
-  { id: "ST-051", date: "2026-08-04", item: "Grower pellets", category: "Pellets", quantity: 14, unit: "25 kg bags", cost: 392000, supplier: "GreenField Feeds", stockStatus: "Good" },
-  { id: "ST-050", date: "2026-08-03", item: "Breeder pellets", category: "Pellets", quantity: 5, unit: "25 kg bags", cost: 155000, supplier: "GreenField Feeds", stockStatus: "Low" },
-  { id: "ST-049", date: "2026-08-02", item: "Timothy hay", category: "Hay", quantity: 8, unit: "bales", cost: 96000, supplier: "Meadow Agro", stockStatus: "Good" },
-  { id: "ST-048", date: "2026-07-30", item: "Mineral lick", category: "Supplement", quantity: 6, unit: "packs", cost: 24000, supplier: "VetPoint", stockStatus: "Low" },
-  { id: "ST-047", date: "2026-07-28", item: "Disposable gloves", category: "Supplies", quantity: 2, unit: "boxes", cost: 18500, supplier: "Medline Lagos", stockStatus: "Critical" },
+  { id: "ST-051", date: "2026-08-04", item: "Grower pellets", category: "Pellets", quantity: 14, unit: "bags", unitWeightKg: 25, reorderLevel: 6, cost: 392000, supplier: "GreenField Feeds", stockStatus: "Good", notes: "Grow-out ration" },
+  { id: "ST-050", date: "2026-08-03", item: "Breeder pellets", category: "Pellets", quantity: 5, unit: "bags", unitWeightKg: 25, reorderLevel: 6, cost: 155000, supplier: "GreenField Feeds", stockStatus: "Low", notes: "Breeder and nursing ration" },
+  { id: "ST-049", date: "2026-08-02", item: "Timothy hay", category: "Hay", quantity: 8, unit: "bales", unitWeightKg: 25, reorderLevel: 4, cost: 96000, supplier: "Meadow Agro", stockStatus: "Good", notes: "Dry and well ventilated" },
+  { id: "ST-048", date: "2026-07-30", item: "Mineral lick", category: "Supplement", quantity: 6, unit: "packs", unitWeightKg: 0, reorderLevel: 8, cost: 24000, supplier: "VetPoint", stockStatus: "Low", notes: "Trace mineral blocks" },
+  { id: "ST-047", date: "2026-07-28", item: "Disposable gloves", category: "Supplies", quantity: 2, unit: "boxes", unitWeightKg: 0, reorderLevel: 5, cost: 18500, supplier: "Medline Lagos", stockStatus: "Critical", notes: "Examination gloves" },
 ];
 
 export const transactions: Transaction[] = [

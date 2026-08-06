@@ -4,16 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 import { Icon } from "./Icon";
 import { Dashboard } from "./farm/Dashboard";
 import { Finance, TransactionModal } from "./farm/Finance";
-import { Breeding, Feed, Health } from "./farm/Operations";
+import { Breeding, Feed, Health, StockModal } from "./farm/Operations";
 import { RabbitModal, RabbitRegistry } from "./farm/RabbitRegistry";
 import { Reports, Settings } from "./farm/ReportsSettings";
 import {
   breedingRecords,
+  feedRecords,
   initialRabbits,
   initialTasks,
   transactions,
 } from "../lib/farm-data";
-import type { FarmView, Rabbit, Transaction } from "../lib/types";
+import type { FarmView, FeedRecord, Rabbit, Transaction } from "../lib/types";
 
 const nav: {
   id: FarmView;
@@ -50,12 +51,15 @@ export default function FarmApp() {
   const [rabbits, setRabbits] = useState<Rabbit[]>(initialRabbits);
   const [financeTransactions, setFinanceTransactions] =
     useState<Transaction[]>(transactions);
+  const [inventory, setInventory] = useState<FeedRecord[]>(feedRecords);
   const [tasks, setTasks] = useState(initialTasks);
   const [hydrated, setHydrated] = useState(false);
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [transactionModal, setTransactionModal] = useState(false);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
+  const [stockModal, setStockModal] = useState(false);
+  const [editingStock, setEditingStock] = useState<FeedRecord | null>(null);
   const [draft, setDraft] = useState<Omit<Rabbit, "id"> & { id?: string }>(
     emptyRabbit,
   );
@@ -91,6 +95,14 @@ export default function FarmApp() {
         /* keep seeded transactions */
       }
     }
+    const storedInventory = window.localStorage.getItem("dauson-inventory-v1");
+    if (storedInventory) {
+      try {
+        setInventory(JSON.parse(storedInventory) as FeedRecord[]);
+      } catch {
+        /* keep seeded inventory */
+      }
+    }
     setHydrated(true);
   }, []);
 
@@ -105,6 +117,13 @@ export default function FarmApp() {
         JSON.stringify(financeTransactions),
       );
   }, [financeTransactions, hydrated]);
+  useEffect(() => {
+    if (hydrated)
+      window.localStorage.setItem(
+        "dauson-inventory-v1",
+        JSON.stringify(inventory),
+      );
+  }, [inventory, hydrated]);
   useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(""), 2800);
@@ -220,6 +239,31 @@ export default function FarmApp() {
     setTransactionModal(false);
     setEditingTransaction(null);
     setToast("Transaction added to the financial ledger");
+  };
+  const saveStock = (stock: Omit<FeedRecord, "id">, stockId?: string) => {
+    if (stockId) {
+      setInventory((current) =>
+        current.map((item) =>
+          item.id === stockId ? { ...stock, id: stockId } : item,
+        ),
+      );
+      setStockModal(false);
+      setEditingStock(null);
+      setToast(`${stock.item} was updated`);
+      return;
+    }
+    const next =
+      Math.max(
+        0,
+        ...inventory.map((item) => Number(item.id.replace(/\D/g, ""))),
+      ) + 1;
+    setInventory((current) => [
+      { ...stock, id: `ST-${String(next).padStart(3, "0")}` },
+      ...current,
+    ]);
+    setStockModal(false);
+    setEditingStock(null);
+    setToast(`${stock.item} was added to inventory`);
   };
 
   const title = nav.find((item) => item.id === view)?.label ?? "Settings";
@@ -350,6 +394,7 @@ export default function FarmApp() {
               rabbits={rabbits}
               tasks={tasks}
               setTasks={setTasks}
+              inventory={inventory}
               healthy={healthy}
               dueThisMonth={dueThisMonth}
               profit={income - expense}
@@ -385,7 +430,19 @@ export default function FarmApp() {
           )}
           {view === "breeding" && <Breeding />}
           {view === "health" && <Health />}
-          {view === "feed" && <Feed />}
+          {view === "feed" && (
+            <Feed
+              inventory={inventory}
+              add={() => {
+                setEditingStock(null);
+                setStockModal(true);
+              }}
+              edit={(record) => {
+                setEditingStock(record);
+                setStockModal(true);
+              }}
+            />
+          )}
           {view === "finance" && (
             <Finance
               income={income}
@@ -402,7 +459,11 @@ export default function FarmApp() {
             />
           )}
           {view === "reports" && (
-            <Reports rabbits={rabbits} transactions={financeTransactions} />
+            <Reports
+              rabbits={rabbits}
+              inventory={inventory}
+              transactions={financeTransactions}
+            />
           )}
           {view === "settings" && (
             <Settings
@@ -434,6 +495,16 @@ export default function FarmApp() {
             setEditingTransaction(null);
           }}
           save={saveTransaction}
+        />
+      )}
+      {stockModal && (
+        <StockModal
+          record={editingStock}
+          close={() => {
+            setStockModal(false);
+            setEditingStock(null);
+          }}
+          save={saveStock}
         />
       )}
       {toast && (

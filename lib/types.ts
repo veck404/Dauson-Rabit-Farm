@@ -63,9 +63,12 @@ export type FeedRecord = {
   category: "Pellets" | "Hay" | "Supplement" | "Medicine" | "Supplies";
   quantity: number;
   unit: string;
+  unitWeightKg: number;
+  reorderLevel: number;
   cost: number;
   supplier: string;
   stockStatus: "Good" | "Low" | "Critical";
+  notes: string;
 };
 
 export type Transaction = {

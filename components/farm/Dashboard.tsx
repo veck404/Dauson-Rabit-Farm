@@ -1,6 +1,6 @@
 import type React from "react";
-import { breedingRecords, feedRecords } from "../../lib/farm-data";
-import type { FarmTask, FarmView, Rabbit } from "../../lib/types";
+import { breedingRecords } from "../../lib/farm-data";
+import type { FarmTask, FarmView, FeedRecord, Rabbit } from "../../lib/types";
 import { daysUntil, money, shortDate } from "../../lib/farm-utils";
 import { Icon } from "../Icon";
 import { Card, Status } from "./ui";
@@ -9,6 +9,7 @@ export function Dashboard({
   rabbits,
   tasks,
   setTasks,
+  inventory,
   healthy,
   dueThisMonth,
   profit,
@@ -18,6 +19,7 @@ export function Dashboard({
   rabbits: Rabbit[];
   tasks: FarmTask[];
   setTasks: React.Dispatch<React.SetStateAction<FarmTask[]>>;
+  inventory: FeedRecord[];
   healthy: number;
   dueThisMonth: number;
   profit: number;
@@ -300,7 +302,7 @@ export function Dashboard({
             </p>
           </div>
           <div className="space-y-3 p-5">
-            {feedRecords
+            {inventory
               .filter((r) => r.stockStatus !== "Good")
               .map((r) => (
                 <div

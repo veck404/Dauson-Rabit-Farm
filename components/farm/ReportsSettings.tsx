@@ -1,5 +1,5 @@
-import { breedingRecords, feedRecords, healthRecords } from "../../lib/farm-data";
-import type { Rabbit, Transaction } from "../../lib/types";
+import { breedingRecords, healthRecords } from "../../lib/farm-data";
+import type { FeedRecord, Rabbit, Transaction } from "../../lib/types";
 import type { ExportRow } from "../../lib/farm-utils";
 import { exportExcel, exportPdf, rabbitRows } from "../../lib/farm-utils";
 import { Icon } from "../Icon";
@@ -7,9 +7,11 @@ import { Card } from "./ui";
 
 export function Reports({
   rabbits,
+  inventory,
   transactions,
 }: {
   rabbits: Rabbit[];
+  inventory: FeedRecord[];
   transactions: Transaction[];
 }) {
   const reports = [
@@ -37,8 +39,8 @@ export function Reports({
     {
       name: "Feed & inventory ledger",
       desc: "Stock on hand, purchases, suppliers and reorder status",
-      count: feedRecords.length,
-      rows: feedRecords as unknown as ExportRow[],
+      count: inventory.length,
+      rows: inventory as unknown as ExportRow[],
       icon: "wheat" as const,
     },
     {
@@ -217,5 +219,4 @@ export function Settings({ saved, onSave }: { saved: boolean; onSave: () => void
     </div>
   );
 }
-
 
