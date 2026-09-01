@@ -413,7 +413,7 @@ export function RabbitModal({
                   value={draft.purpose}
                   onChange={(e) => update("purpose", e.target.value)}
                 >
-                  {["Breeder", "Grow-out", "Pet", "Meat"].map((v) => (
+                  {["Breeder", "Grow-out", , "Meat"].map((v) => (
                     <option key={v}>{v}</option>
                   ))}
                 </select>

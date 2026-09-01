@@ -24,7 +24,7 @@ export type Rabbit = {
   breed: string;
   sex: "Doe" | "Buck";
   status: RabbitStatus;
-  purpose: "Breeder" | "Grow-out" | "Pet" | "Meat";
+  purpose: "Breeder" | "Grow-out" | "Meat";
   dateOfBirth: string;
   weightKg: number;
   cage: string;

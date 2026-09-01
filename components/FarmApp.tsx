@@ -528,7 +528,7 @@ export default function FarmApp() {
               className="flex items-center gap-2 rounded-xl bg-[#123f34] px-3.5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#0d332a]"
             >
               <Icon name="plus" className="h-4 w-4" />
-              <span className="hidden sm:inline">Add rabbit</span>
+              <span className="hidden sm:inline">Add Rabbit</span>
             </button>
           </div>
         </header>
