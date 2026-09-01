@@ -280,35 +280,39 @@ export function RabbitModal({
     title: string,
     note: string,
   ) => (
-    <div className="mb-3 flex items-center gap-3 border-b border-stone-100 pb-2 sm:col-span-2">
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700 sm:h-9 sm:w-9">
+    <div className="col-span-2 mb-1 flex items-center gap-2 border-b border-stone-100 pb-2 sm:mb-3 sm:gap-3">
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-700 sm:h-9 sm:w-9 sm:rounded-xl">
         <Icon name={icon} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       </span>
       <div>
-        <h3 className="text-xs font-bold text-stone-800">{title}</h3>
-        <p className="mt-0.5 text-[10px] text-stone-400">{note}</p>
+        <h3 className="text-[12px] font-bold leading-4 text-stone-800 sm:text-xs">
+          {title}
+        </h3>
+        <p className="mt-0.5 hidden text-[10px] text-stone-400 sm:block">
+          {note}
+        </p>
       </div>
     </div>
   );
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50 p-3 backdrop-blur-sm sm:p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50 backdrop-blur-sm sm:p-6">
       <div
         role="dialog"
         aria-modal="true"
         aria-label={`${mode} rabbit`}
-        className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl sm:rounded-[22px] sm:max-h-[calc(100dvh-3rem)]"
+        className="flex h-[100dvh] w-full max-w-4xl flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[calc(100dvh-3rem)] sm:rounded-[22px]"
       >
-        <div className="relative shrink-0 overflow-hidden bg-[#123f34] px-4 py-3 text-white sm:px-8 sm:py-6">
+        <div className="relative shrink-0 overflow-hidden bg-[#123f34] px-3 py-2.5 text-white sm:px-8 sm:py-6">
           <div className="absolute -right-8 -top-12 h-40 w-40 rounded-full border-[28px] border-white/5" />
-          <div className="relative flex items-start gap-4">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#e9b949] text-[#123f34] sm:h-11 sm:w-11">
-              <Icon name="rabbit" className="h-5 w-5 sm:h-6 sm:w-6" />
+          <div className="relative flex items-center gap-3 sm:items-start sm:gap-4">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#e9b949] text-[#123f34] sm:h-11 sm:w-11 sm:rounded-xl">
+              <Icon name="rabbit" className="h-4 w-4 sm:h-6 sm:w-6" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[9px] font-bold uppercase tracking-[.18em] text-emerald-100/60">
+              <p className="hidden text-[9px] font-bold uppercase tracking-[.18em] text-emerald-100/60 sm:block">
                 Rabbit registry
               </p>
-              <h2 className="mt-1 font-serif text-lg sm:text-2xl font-bold">
+              <h2 className="truncate font-serif text-base font-bold sm:mt-1 sm:text-2xl">
                 {mode === "add"
                   ? "Register a new rabbit"
                   : `Edit ${draft.name || "rabbit"}`}
@@ -318,15 +322,15 @@ export function RabbitModal({
               type="button"
               aria-label="Close form"
               onClick={close}
-              className="grid h-9 w-9 place-items-center rounded-xl bg-white/10 text-white hover:bg-white/20"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10 text-white hover:bg-white/20 sm:h-9 sm:w-9 sm:rounded-xl"
             >
-              <Icon name="close" className="h-5 w-5" />
+              <Icon name="close" className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
         </div>
         <form onSubmit={save} className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 space-y-4 sm:space-y-7 overflow-y-auto overscroll-contain bg-[#fbfcfa] p-3 sm:p-8">
-            <section className="grid gap-3 sm:gap-4 rounded-lg sm:rounded-2xl border border-stone-200 bg-white p-4 sm:p-5 shadow-sm sm:grid-cols-2">
+          <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain bg-[#fbfcfa] p-2.5 sm:space-y-7 sm:p-8">
+            <section className="grid grid-cols-2 gap-x-2 gap-y-2.5 rounded-lg border border-stone-200 bg-white p-3 shadow-sm [&>*]:min-w-0 sm:gap-4 sm:rounded-2xl sm:p-5">
               {sectionTitle(
                 "rabbit",
                 "Identity",
@@ -335,14 +339,13 @@ export function RabbitModal({
               <label className="field">
                 Tag number *
                 <input
-                  autoFocus
                   required
-                  className="control mt-1 sm:mt-1.5"
+                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
                   value={draft.tag}
                   onChange={(e) => update("tag", e.target.value)}
                   placeholder="e.g. DF-2461"
                 />
-                <span className="mt-1.5 block text-[9px] font-normal text-stone-400">
+                <span className="mt-1.5 hidden text-[9px] font-normal text-stone-400 sm:block">
                   Use the tag attached to the cage or animal.
                 </span>
               </label>
@@ -350,7 +353,7 @@ export function RabbitModal({
                 Rabbit name *
                 <input
                   required
-                  className="control mt-1 sm:mt-1.5"
+                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
                   value={draft.name}
                   onChange={(e) => update("name", e.target.value)}
                   placeholder="e.g. Hazel"
@@ -359,7 +362,7 @@ export function RabbitModal({
               <label className="field">
                 Breed *
                 <select
-                  className="control mt-1 sm:mt-1.5"
+                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
                   value={draft.breed}
                   onChange={(e) => update("breed", e.target.value)}
                 >
@@ -384,7 +387,7 @@ export function RabbitModal({
                   {["Doe", "Buck"].map((option) => (
                     <label
                       key={option}
-                      className={`cursor-pointer rounded-xl border px-3 py-2 sm:py-2.5 text-center text-xs font-semibold transition ${draft.sex === option ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-stone-200 text-stone-500 hover:border-stone-300"}`}
+                      className={`cursor-pointer rounded-xl border px-2 py-2 text-center text-xs font-semibold transition sm:px-3 sm:py-2.5 ${draft.sex === option ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-stone-200 text-stone-500 hover:border-stone-300"}`}
                     >
                       <input
                         className="sr-only"
@@ -400,7 +403,7 @@ export function RabbitModal({
                 </div>
               </fieldset>
             </section>
-            <section className="grid gap-3 sm:gap-4 rounded-lg sm:rounded-2xl border border-stone-200 bg-white p-4 sm:p-5 shadow-sm sm:grid-cols-2">
+            <section className="grid grid-cols-2 gap-x-2 gap-y-2.5 rounded-lg border border-stone-200 bg-white p-3 shadow-sm [&>*]:min-w-0 sm:gap-4 sm:rounded-2xl sm:p-5">
               {sectionTitle(
                 "box",
                 "Farm placement",
@@ -409,11 +412,11 @@ export function RabbitModal({
               <label className="field">
                 Purpose *
                 <select
-                  className="control mt-1 sm:mt-1.5"
+                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
                   value={draft.purpose}
                   onChange={(e) => update("purpose", e.target.value)}
                 >
-                  {["Breeder", "Grow-out", , "Meat"].map((v) => (
+                  {["Breeder", "Grow-out", "Meat"].map((v) => (
                     <option key={v}>{v}</option>
                   ))}
                 </select>
@@ -421,7 +424,7 @@ export function RabbitModal({
               <label className="field">
                 Current status *
                 <select
-                  className="control mt-1.5"
+                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
                   value={draft.status}
                   onChange={(e) => update("status", e.target.value)}
                 >
@@ -442,7 +445,7 @@ export function RabbitModal({
                 Cage or pen *
                 <input
                   required
-                  className="control mt-1.5 uppercase"
+                  className="control mt-1 px-3 py-2 uppercase sm:mt-1.5 sm:px-3.5 sm:py-2.5"
                   value={draft.cage}
                   onChange={(e) => update("cage", e.target.value.toUpperCase())}
                   placeholder="e.g. A-01"
@@ -456,18 +459,18 @@ export function RabbitModal({
                     min="0.1"
                     step="0.1"
                     type="number"
-                    className="control pr-12"
+                    className="control py-2 pl-3 pr-10 sm:py-2.5 sm:pl-3.5 sm:pr-12"
                     value={draft.weightKg || ""}
                     onChange={(e) => update("weightKg", Number(e.target.value))}
                     placeholder="0.0"
                   />
-                  <span className="pointer-events-none absolute right-3 top-2.5 text-[10px] font-bold text-stone-400">
+                  <span className="pointer-events-none absolute right-2.5 top-2 text-[10px] font-bold text-stone-400 sm:right-3 sm:top-2.5">
                     KG
                   </span>
                 </div>
               </label>
             </section>
-            <section className="grid gap-3 sm:gap-4 rounded-lg sm:rounded-2xl border border-stone-200 bg-white p-4 sm:p-5 shadow-sm sm:grid-cols-2">
+            <section className="grid grid-cols-2 gap-x-2 gap-y-2.5 rounded-lg border border-stone-200 bg-white p-3 shadow-sm [&>*]:min-w-0 sm:gap-4 sm:rounded-2xl sm:p-5">
               {sectionTitle(
                 "calendar",
                 "Dates & appearance",
@@ -478,7 +481,7 @@ export function RabbitModal({
                 <input
                   required
                   type="date"
-                  className="control mt-1 sm:mt-1.5"
+                  className="control mt-1 px-2 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
                   value={draft.dateOfBirth}
                   onChange={(e) => update("dateOfBirth", e.target.value)}
                 />
@@ -488,7 +491,7 @@ export function RabbitModal({
                 <input
                   required
                   type="date"
-                  className="control mt-1 sm:mt-1.5"
+                  className="control mt-1 px-2 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
                   value={draft.acquiredDate}
                   onChange={(e) => update("acquiredDate", e.target.value)}
                 />
@@ -496,14 +499,14 @@ export function RabbitModal({
               <label className="field sm:col-span-2">
                 Colour or markings
                 <input
-                  className="control mt-1 sm:mt-1.5"
+                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
                   value={draft.color}
                   onChange={(e) => update("color", e.target.value)}
                   placeholder="e.g. White with black ears"
                 />
               </label>
             </section>
-            <section className="grid gap-3 sm:gap-4 rounded-lg sm:rounded-2xl border border-stone-200 bg-white p-4 sm:p-5 shadow-sm sm:grid-cols-2">
+            <section className="grid grid-cols-2 gap-x-2 gap-y-2.5 rounded-lg border border-stone-200 bg-white p-3 shadow-sm [&>*]:min-w-0 sm:gap-4 sm:rounded-2xl sm:p-5">
               {sectionTitle(
                 "report",
                 "Farm notes",
@@ -512,18 +515,18 @@ export function RabbitModal({
               <label className="field sm:col-span-2">
                 Notes
                 <textarea
-                  className="control mt-1 sm:mt-1.5 min-h-20 sm:min-h-24 resize-y"
+                  className="control mt-1 min-h-16 resize-y px-3 py-2 sm:mt-1.5 sm:min-h-24 sm:px-3.5 sm:py-2.5"
                   value={draft.notes}
                   onChange={(e) => update("notes", e.target.value)}
                   placeholder="Temperament, feeding behaviour, production notes or identifying details…"
                 />
-                <span className="mt-1.5 block text-right text-[9px] font-normal text-stone-400">
+                <span className="mt-1 hidden text-right text-[9px] font-normal text-stone-400 sm:block">
                   Optional
                 </span>
               </label>
             </section>
           </div>
-          <div className="flex flex-col-reverse gap-2 border-t border-stone-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-4">
+          <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-stone-200 bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-4">
             <p className="hidden text-[10px] text-stone-400 sm:block">
               Records save automatically to the farm register.
             </p>
@@ -536,7 +539,7 @@ export function RabbitModal({
                 Cancel
               </button>
               <button className="btn-primary flex-1 sm:flex-none">
-                <Icon name="check" className="h-4 w-2" />
+                <Icon name="check" className="h-4 w-4" />
                 {mode === "add" ? "Add to registry" : "Save changes"}
               </button>
             </div>
