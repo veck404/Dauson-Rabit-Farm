@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "./Icon";
+import { LoginScreen } from "./LoginScreen";
 import { Dashboard, TaskModal } from "./farm/Dashboard";
 import { Finance, TransactionModal } from "./farm/Finance";
 import {
@@ -38,11 +39,11 @@ const nav: {
   icon: Parameters<typeof Icon>[0]["name"];
 }[] = [
   { id: "dashboard", label: "Overview", icon: "grid" },
+  { id: "finance", label: "Finance", icon: "wallet" },
   { id: "rabbits", label: "Rabbit registry", icon: "rabbit" },
   { id: "breeding", label: "Breeding & litters", icon: "dna" },
   { id: "health", label: "Health & care", icon: "heart" },
   { id: "feed", label: "Feed & inventory", icon: "wheat" },
-  { id: "finance", label: "Finance", icon: "wallet" },
   { id: "reports", label: "Reports & exports", icon: "report" },
 ];
 
@@ -62,6 +63,8 @@ const emptyRabbit: Omit<Rabbit, "id"> = {
 };
 
 export default function FarmApp() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const [view, setView] = useState<FarmView>("dashboard");
   const [mobileNav, setMobileNav] = useState(false);
   const [rabbits, setRabbits] = useState<Rabbit[]>(initialRabbits);
@@ -96,6 +99,14 @@ export default function FarmApp() {
   const [sex, setSex] = useState("All sexes");
   const [sort, setSort] = useState("tag-asc");
   const [settingsSaved, setSettingsSaved] = useState(false);
+
+  useEffect(() => {
+    const hasSession =
+      window.localStorage.getItem("dauson-auth-v1") === "active" ||
+      window.sessionStorage.getItem("dauson-auth-v1") === "active";
+    setAuthenticated(hasSession);
+    setAuthReady(true);
+  }, []);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("dauson-rabbits-v2");
@@ -406,6 +417,38 @@ export default function FarmApp() {
     setToast("Task added to today’s work plan");
   };
 
+  const login = (remember: boolean) => {
+    const persistentStorage = remember
+      ? window.localStorage
+      : window.sessionStorage;
+    const otherStorage = remember
+      ? window.sessionStorage
+      : window.localStorage;
+    persistentStorage.setItem("dauson-auth-v1", "active");
+    otherStorage.removeItem("dauson-auth-v1");
+    setAuthenticated(true);
+  };
+
+  const logout = () => {
+    window.localStorage.removeItem("dauson-auth-v1");
+    window.sessionStorage.removeItem("dauson-auth-v1");
+    setMobileNav(false);
+    setView("dashboard");
+    setAuthenticated(false);
+  };
+
+  if (!authReady) {
+    return (
+      <div className="grid min-h-[100dvh] place-items-center bg-[#eff4f1]">
+        <div className="grid h-12 w-12 animate-pulse place-items-center rounded-2xl bg-[#123f34] text-[#efc557] shadow-xl shadow-emerald-950/10">
+          <Icon name="rabbit" className="h-6 w-6" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!authenticated) return <LoginScreen onLogin={login} />;
+
   const title = nav.find((item) => item.id === view)?.label ?? "Settings";
   return (
     <div className="min-h-screen bg-[#f6f7f3] text-stone-900">
@@ -476,7 +519,15 @@ export default function FarmApp() {
                   Farm administrator
                 </p>
               </div>
-              <Icon name="more" className="ml-auto h-4 w-4 text-white/50" />
+              <button
+                type="button"
+                aria-label="Sign out"
+                title="Sign out"
+                onClick={logout}
+                className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-white/50 hover:bg-white/10 hover:text-white"
+              >
+                <Icon name="logout" className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>

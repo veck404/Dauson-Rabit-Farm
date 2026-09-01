@@ -4,7 +4,8 @@ type IconName =
   | "grid" | "rabbit" | "heart" | "dna" | "wheat" | "wallet" | "report"
   | "settings" | "search" | "plus" | "download" | "bell" | "chevron"
   | "trend" | "calendar" | "weight" | "menu" | "close" | "edit"
-  | "trash" | "check" | "clock" | "box" | "arrow" | "more" | "filter";
+  | "trash" | "check" | "clock" | "box" | "arrow" | "more" | "filter"
+  | "mail" | "lock" | "eye" | "eyeOff" | "logout";
 
 const paths: Record<IconName, React.ReactNode> = {
   grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
@@ -28,6 +29,11 @@ const paths: Record<IconName, React.ReactNode> = {
   box: <><path d="m21 8-9 5-9-5 9-5 9 5Z"/><path d="m3 8 9 5 9-5v9l-9 5-9-5Z"/></>, arrow: <path d="M5 12h14m-5-5 5 5-5 5"/>,
   more: <><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></>,
   filter: <path d="M4 5h16l-6 7v6l-4 2v-8Z"/>,
+  mail: <><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></>,
+  lock: <><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></>,
+  eye: <><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></>,
+  eyeOff: <><path d="m3 3 18 18M10.6 6.2A11.7 11.7 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-2.1 2.8M6.6 6.6C3.6 8.4 2 12 2 12s3.5 6 10 6c1.6 0 3-.4 4.2-1M10.3 10.3a2.5 2.5 0 0 0 3.4 3.4"/></>,
+  logout: <><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M14 8l4 4-4 4M18 12H8"/></>,
 };
 
 export function Icon({ name, ...props }: SVGProps<SVGSVGElement> & { name: IconName }) {
