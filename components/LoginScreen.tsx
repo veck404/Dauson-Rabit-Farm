@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Icon } from "./Icon";
 
 export const DEMO_EMAIL = "admin@dausonfarm.com";
@@ -16,6 +16,12 @@ export function LoginScreen({
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!error) return;
+    const timeout = window.setTimeout(() => setError(""), 3600);
+    return () => window.clearTimeout(timeout);
+  }, [error]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -154,15 +160,6 @@ export function LoginScreen({
                   Forgot password?
                 </button> */}
               </div>
-
-              {error && (
-                <div
-                  role="alert"
-                  className="rounded-xl bg-rose-50 px-3 py-2 text-center text-[10px] font-medium leading-4 text-rose-700"
-                >
-                  {error}
-                </div>
-              )}
 
               <button
                 type="submit"
@@ -383,15 +380,6 @@ export function LoginScreen({
                   Keep me signed in after closing the browser
                 </label>
 
-                {error && (
-                  <div
-                    role="alert"
-                    className="rounded-xl border border-rose-100 bg-rose-50 px-3.5 py-2.5 text-[11px] font-medium leading-4 text-rose-700"
-                  >
-                    {error}
-                  </div>
-                )}
-
                 <button
                   type="submit"
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#155c49] px-4 py-2.5 text-xs font-bold text-white shadow-[0_8px_18px_rgba(21,92,73,0.22)] hover:-translate-y-px hover:bg-[#104b3c] hover:shadow-[0_10px_24px_rgba(21,92,73,0.26)]"
@@ -428,6 +416,27 @@ export function LoginScreen({
           </div>
         </section>
       </div>
+
+      {error && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="fixed bottom-5 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-3 rounded-xl border border-rose-200 bg-white px-4 py-3 text-[11px] font-semibold leading-4 text-rose-700 shadow-[0_18px_45px_rgba(136,19,55,0.2)] sm:left-auto sm:right-5 sm:w-auto sm:translate-x-0"
+        >
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-rose-100 text-rose-600">
+            <Icon name="close" className="h-3.5 w-3.5" />
+          </span>
+          <span className="flex-1">{error}</span>
+          <button
+            type="button"
+            aria-label="Dismiss notification"
+            onClick={() => setError("")}
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+          >
+            <Icon name="close" className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
     </main>
   );
 }

@@ -481,6 +481,7 @@ export default function FarmApp() {
     );
     otherStorage.removeItem(AUTH_SESSION_KEY);
     setAuthExpiresAt(expiresAt);
+    setToast("Login successful. Welcome back, Esther.");
     setAuthenticated(true);
   };
 
