@@ -23,32 +23,35 @@ export function LoginScreen({
       email.trim().toLowerCase() !== DEMO_EMAIL ||
       password !== DEMO_PASSWORD
     ) {
-      setError("The email or password is incorrect. Use the demo access below.");
+      setError(
+        "The email or password is incorrect. Use the demo access below.",
+      );
       return;
     }
     onLogin(remember);
   };
 
   return (
-    <main className="relative min-h-[100dvh] overflow-x-hidden bg-gradient-to-br from-[#16c9e8] via-[#5268f2] to-[#7b3de5] text-stone-900 lg:bg-[#eff4f1] lg:bg-none">
-      <div className="pointer-events-none absolute -left-24 -top-32 h-96 w-96 rounded-full bg-emerald-200/35 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 right-0 h-[30rem] w-[30rem] rounded-full bg-amber-100/70 blur-3xl" />
+    <main className="relative min-h-[100dvh] overflow-x-hidden bg-white text-stone-900 lg:bg-[#eff4f1]">
+      <div className="pointer-events-none absolute -left-24 -top-32 hidden h-96 w-96 rounded-full bg-emerald-200/35 blur-3xl lg:block" />
+      <div className="pointer-events-none absolute -bottom-40 right-0 hidden h-[30rem] w-[30rem] rounded-full bg-amber-100/70 blur-3xl lg:block" />
 
-      <div className="relative flex min-h-[100dvh] items-center justify-center p-2.5 lg:hidden">
-        <div className="flex min-h-[calc(100dvh-1.25rem)] w-full max-w-[390px] flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_24px_65px_rgba(36,22,112,0.38)] ring-1 ring-white/30">
-          <header className="relative h-[clamp(150px,27dvh,190px)] shrink-0 overflow-hidden bg-gradient-to-br from-[#7546ee] via-[#536af3] to-[#19c5e8] text-white">
-            <div className="absolute -right-16 -top-20 h-48 w-48 rounded-full border-[32px] border-white/[0.06]" />
-            <div className="absolute -left-12 top-14 h-32 w-32 rounded-full bg-fuchsia-500/20 blur-2xl" />
-            <div className="relative z-10 flex h-[72%] flex-col items-center justify-center pb-1">
-              <span className="grid h-14 w-14 place-items-center rounded-[20px] bg-white/15 shadow-lg shadow-indigo-950/10 ring-1 ring-white/25 backdrop-blur-sm">
-                <Icon name="rabbit" className="h-8 w-8" />
-              </span>
-              <p className="mt-2.5 font-serif text-xl font-bold tracking-[-0.02em]">
-                Dauson Farm
+      <div className="relative min-h-[100dvh] lg:hidden">
+        <div className="flex min-h-[100dvh] w-full flex-col overflow-hidden bg-white">
+          <header className="relative h-[clamp(165px,27dvh,205px)] shrink-0 overflow-hidden bg-gradient-to-br from-[#075f4b] via-[#0d8a67] to-[#47c58d] text-white">
+            <div className="absolute -right-20 -top-24 h-56 w-56 rounded-full border-[38px] border-white/[0.07]" />
+            <div className="absolute -left-12 top-12 h-36 w-36 rounded-full bg-emerald-950/15 blur-2xl" />
+            <div className="relative z-10 flex h-[70%] flex-col items-center justify-center pb-1">
+              <Icon
+                name="rabbit"
+                className="h-12 w-12 drop-shadow-[0_6px_12px_rgba(0,0,0,0.13)]"
+              />
+              <p className="mt-1.5 text-lg font-bold tracking-[-0.02em]">
+                DAUSON FARM
               </p>
-              <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[.22em] text-white/65">
+              {/* <p className="text-[9px] font-bold uppercase tracking-[.22em] text-white/65">
                 Farm OS
-              </p>
+              </p> */}
             </div>
             <svg
               aria-hidden="true"
@@ -58,7 +61,7 @@ export function LoginScreen({
             >
               <path
                 d="M0 50C67 16 117 33 174 57c71 30 132 35 216-13v56H0Z"
-                fill="rgba(126,35,224,.72)"
+                fill="rgba(5,105,78,.72)"
               />
               <path
                 d="M0 57C73 22 121 50 177 70c70 25 137 19 213-18v48H0Z"
@@ -67,9 +70,9 @@ export function LoginScreen({
             </svg>
           </header>
 
-          <div className="flex flex-1 flex-col px-5 pb-4 pt-1 sm:px-7">
-            <div className="text-center">
-              <h1 className="font-serif text-2xl font-bold tracking-[-0.025em] text-[#25313b]">
+          <div className="mx-auto flex w-full max-w-[390px] flex-1 flex-col justify-center px-6 py-4 sm:px-8">
+            <div className="text-center relative">
+              <h1 className="text-2xl font-semibold tracking-[-0.025em] text-[#26342f]">
                 Welcome back!
               </h1>
               <p className="mt-1 text-[10px] text-stone-400">
@@ -94,7 +97,7 @@ export function LoginScreen({
                     setError("");
                   }}
                   placeholder="Email address"
-                  className="w-full rounded-full border border-transparent bg-stone-100/90 py-2.5 pl-11 pr-4 text-xs text-stone-700 outline-none transition placeholder:text-stone-400 hover:bg-stone-100 focus:border-violet-300 focus:bg-white focus:ring-[3px] focus:ring-violet-100"
+                  className="w-full rounded-[10px] border border-transparent bg-[#f4f6f5] py-2.5 pl-11 pr-4 text-xs text-stone-700 outline-none transition placeholder:text-stone-400 hover:bg-stone-100 focus:border-emerald-400 focus:bg-white focus:ring-[3px] focus:ring-emerald-100"
                 />
               </label>
 
@@ -114,13 +117,13 @@ export function LoginScreen({
                     setError("");
                   }}
                   placeholder="Password"
-                  className="w-full rounded-full border border-transparent bg-stone-100/90 py-2.5 pl-11 pr-12 text-xs text-stone-700 outline-none transition placeholder:text-stone-400 hover:bg-stone-100 focus:border-violet-300 focus:bg-white focus:ring-[3px] focus:ring-violet-100"
+                  className="w-full rounded-[10px] border border-transparent bg-[#f4f6f5] py-2.5 pl-11 pr-12 text-xs text-stone-700 outline-none transition placeholder:text-stone-400 hover:bg-stone-100 focus:border-emerald-400 focus:bg-white focus:ring-[3px] focus:ring-emerald-100"
                 />
                 <button
                   type="button"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword((current) => !current)}
-                  className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full text-stone-400 hover:bg-white hover:text-violet-600"
+                  className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-stone-400 hover:bg-white hover:text-emerald-700"
                 >
                   <Icon
                     name={showPassword ? "eyeOff" : "eye"}
@@ -135,11 +138,11 @@ export function LoginScreen({
                     type="checkbox"
                     checked={remember}
                     onChange={(event) => setRemember(event.target.checked)}
-                    className="h-3.5 w-3.5 rounded border-stone-300 accent-violet-600"
+                    className="h-3.5 w-3.5 rounded border-stone-300 accent-emerald-700"
                   />
                   Remember me
                 </label>
-                <button
+                {/* <button
                   type="button"
                   onClick={() =>
                     setError(
@@ -149,7 +152,7 @@ export function LoginScreen({
                   className="font-medium text-stone-500 hover:text-violet-700"
                 >
                   Forgot password?
-                </button>
+                </button> */}
               </div>
 
               {error && (
@@ -163,16 +166,16 @@ export function LoginScreen({
 
               <button
                 type="submit"
-                className="w-full rounded-full bg-gradient-to-r from-violet-600 via-indigo-500 to-cyan-500 p-px shadow-[0_7px_18px_rgba(91,72,218,0.18)] transition hover:-translate-y-px hover:shadow-[0_9px_22px_rgba(91,72,218,0.25)]"
+                className="w-full rounded-[10px] bg-gradient-to-r from-[#08755a] via-[#19a875] to-[#68d8a4] p-px shadow-[0_7px_18px_rgba(8,117,90,0.16)] transition hover:-translate-y-px hover:shadow-[0_9px_22px_rgba(8,117,90,0.22)]"
               >
-                <span className="block rounded-full bg-white px-4 py-2 text-xs font-bold text-violet-600 transition hover:bg-white/95">
+                <span className="block rounded-[9px] bg-white px-4 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-50/30">
                   Login
                 </span>
               </button>
             </form>
 
-            <p className="mt-3 text-center text-[10px] text-stone-400">
-              Demo user?{" "}
+            {/* <p className="mt-3 text-center text-[10px] text-stone-400">
+              New user?{" "}
               <button
                 type="button"
                 onClick={() => {
@@ -180,28 +183,48 @@ export function LoginScreen({
                   setPassword(DEMO_PASSWORD);
                   setError("");
                 }}
-                className="font-bold text-violet-600 hover:text-violet-700"
+                className="font-bold text-emerald-700 hover:text-emerald-800"
               >
-                Fill login details
+                Use demo access
               </button>
-            </p>
+            </p> */}
 
-            <div className="my-3 flex items-center gap-3 px-4">
+            {/* <div className="my-3 flex items-center gap-3 px-4">
               <span className="h-px flex-1 bg-stone-200" />
               <span className="text-[9px] font-semibold uppercase text-stone-400">
-                Secure access
+                OR
               </span>
               <span className="h-px flex-1 bg-stone-200" />
-            </div>
+            </div> */}
 
-            <div className="mt-auto text-center">
-              <div className="inline-flex items-center gap-2 rounded-full bg-violet-50 px-3 py-1.5 text-[9px] font-medium text-violet-700">
-                <Icon name="lock" className="h-3 w-3" />
-                Session expires automatically after 6 hours
+            <div className="text-center">
+              {/* <div className="flex justify-center gap-2.5">
+                {[
+                  ["rabbit", "Herd"],
+                  ["heart", "Care"],
+                  ["wallet", "Finance"],
+                  ["report", "Reports"],
+                ].map(([icon, label]) => (
+                  <span
+                    key={label}
+                    title={label}
+                    className="grid h-7 w-7 place-items-center rounded-full bg-emerald-600 text-white shadow-sm shadow-emerald-900/10"
+                  >
+                    <Icon
+                      name={icon as "rabbit" | "heart" | "wallet" | "report"}
+                      className="h-3.5 w-3.5"
+                    />
+                  </span>
+                ))}
+              </div> */}
+              <div className="absolute bottom-4 left-0 right-0">
+                <p className="mt-.5 text-[9px] text-stone-400">
+                  One secure account for every farm record
+                </p>
+                <p className="mt-1 text-[9px] text-stone-300">
+                  Sessions expire automatically after 6 hours
+                </p>
               </div>
-              <p className="mt-2 text-[9px] text-stone-300">
-                Dauson Farm operating system
-              </p>
             </div>
           </div>
         </div>
@@ -258,7 +281,8 @@ export function LoginScreen({
           </div>
 
           <p className="relative text-[10px] text-emerald-100/35">
-            © {new Date().getFullYear()} Dauson Farm · Secure operations workspace
+            © {new Date().getFullYear()} Dauson Farm · Secure operations
+            workspace
           </p>
         </section>
 
@@ -335,7 +359,9 @@ export function LoginScreen({
                     />
                     <button
                       type="button"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                       onClick={() => setShowPassword((current) => !current)}
                       className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600"
                     >
