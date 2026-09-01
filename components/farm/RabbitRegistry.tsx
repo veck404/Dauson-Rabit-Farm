@@ -340,7 +340,7 @@ export function RabbitModal({
                 Tag number *
                 <input
                   required
-                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
+                  className="control mt-1 px-3 py-1.5 sm:mt-1.5 sm:px-3.5 sm:py-2"
                   value={draft.tag}
                   onChange={(e) => update("tag", e.target.value)}
                   placeholder="e.g. DF-2461"
@@ -353,7 +353,7 @@ export function RabbitModal({
                 Rabbit name *
                 <input
                   required
-                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
+                  className="control mt-1 px-3 py-1.5 sm:mt-1.5 sm:px-3.5 sm:py-2"
                   value={draft.name}
                   onChange={(e) => update("name", e.target.value)}
                   placeholder="e.g. Hazel"
@@ -362,7 +362,7 @@ export function RabbitModal({
               <label className="field">
                 Breed *
                 <select
-                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
+                  className="control mt-1 px-3 py-1.5 sm:mt-1.5 sm:px-3.5 sm:py-2"
                   value={draft.breed}
                   onChange={(e) => update("breed", e.target.value)}
                 >
@@ -383,14 +383,14 @@ export function RabbitModal({
               </label>
               <fieldset>
                 <legend className="field mb-1.5">Sex *</legend>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex min-h-8 items-center gap-5">
                   {["Doe", "Buck"].map((option) => (
                     <label
                       key={option}
-                      className={`cursor-pointer rounded-xl border px-2 py-2 text-center text-xs font-semibold transition sm:px-3 sm:py-2.5 ${draft.sex === option ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-stone-200 text-stone-500 hover:border-stone-300"}`}
+                      className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-stone-600"
                     >
                       <input
-                        className="sr-only"
+                        className="h-4 w-4 cursor-pointer accent-emerald-700"
                         type="radio"
                         name="sex"
                         value={option}
@@ -412,7 +412,7 @@ export function RabbitModal({
               <label className="field">
                 Purpose *
                 <select
-                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
+                  className="control mt-1 px-3 py-1.5 sm:mt-1.5 sm:px-3.5 sm:py-2"
                   value={draft.purpose}
                   onChange={(e) => update("purpose", e.target.value)}
                 >
@@ -424,7 +424,7 @@ export function RabbitModal({
               <label className="field">
                 Current status *
                 <select
-                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
+                  className="control mt-1 px-3 py-1.5 sm:mt-1.5 sm:px-3.5 sm:py-2"
                   value={draft.status}
                   onChange={(e) => update("status", e.target.value)}
                 >
@@ -445,7 +445,7 @@ export function RabbitModal({
                 Cage or pen *
                 <input
                   required
-                  className="control mt-1 px-3 py-2 uppercase sm:mt-1.5 sm:px-3.5 sm:py-2.5"
+                  className="control mt-1 px-3 py-1.5 uppercase sm:mt-1.5 sm:px-3.5 sm:py-2"
                   value={draft.cage}
                   onChange={(e) => update("cage", e.target.value.toUpperCase())}
                   placeholder="e.g. A-01"
@@ -459,12 +459,12 @@ export function RabbitModal({
                     min="0.1"
                     step="0.1"
                     type="number"
-                    className="control py-2 pl-3 pr-10 sm:py-2.5 sm:pl-3.5 sm:pr-12"
+                    className="control py-1.5 pl-3 pr-10 sm:py-2 sm:pl-3.5 sm:pr-12"
                     value={draft.weightKg || ""}
                     onChange={(e) => update("weightKg", Number(e.target.value))}
                     placeholder="0.0"
                   />
-                  <span className="pointer-events-none absolute right-2.5 top-2 text-[10px] font-bold text-stone-400 sm:right-3 sm:top-2.5">
+                  <span className="pointer-events-none absolute right-2.5 top-1.5 text-[10px] font-bold text-stone-400 sm:right-3 sm:top-2">
                     KG
                   </span>
                 </div>
@@ -481,7 +481,7 @@ export function RabbitModal({
                 <input
                   required
                   type="date"
-                  className="control mt-1 px-2 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
+                  className="control mt-1 px-2 py-1.5 sm:mt-1.5 sm:px-3.5 sm:py-2"
                   value={draft.dateOfBirth}
                   onChange={(e) => update("dateOfBirth", e.target.value)}
                 />
@@ -491,7 +491,7 @@ export function RabbitModal({
                 <input
                   required
                   type="date"
-                  className="control mt-1 px-2 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
+                  className="control mt-1 px-2 py-1.5 sm:mt-1.5 sm:px-3.5 sm:py-2"
                   value={draft.acquiredDate}
                   onChange={(e) => update("acquiredDate", e.target.value)}
                 />
@@ -499,7 +499,7 @@ export function RabbitModal({
               <label className="field sm:col-span-2">
                 Colour or markings
                 <input
-                  className="control mt-1 px-3 py-2 sm:mt-1.5 sm:px-3.5 sm:py-2.5"
+                  className="control mt-1 px-3 py-1.5 sm:mt-1.5 sm:px-3.5 sm:py-2"
                   value={draft.color}
                   onChange={(e) => update("color", e.target.value)}
                   placeholder="e.g. White with black ears"
@@ -515,7 +515,7 @@ export function RabbitModal({
               <label className="field sm:col-span-2">
                 Notes
                 <textarea
-                  className="control mt-1 min-h-16 resize-y px-3 py-2 sm:mt-1.5 sm:min-h-24 sm:px-3.5 sm:py-2.5"
+                  className="control mt-1 min-h-14 resize-y px-3 py-1.5 sm:mt-1.5 sm:min-h-20 sm:px-3.5 sm:py-2"
                   value={draft.notes}
                   onChange={(e) => update("notes", e.target.value)}
                   placeholder="Temperament, feeding behaviour, production notes or identifying details…"
