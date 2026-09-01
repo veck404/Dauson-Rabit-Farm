@@ -62,9 +62,31 @@ const emptyRabbit: Omit<Rabbit, "id"> = {
   notes: "",
 };
 
+const AUTH_SESSION_KEY = "dauson-auth-v1";
+const AUTH_SESSION_DURATION = 6 * 60 * 60 * 1000;
+
+function validSessionExpiry(storage: Storage) {
+  const stored = storage.getItem(AUTH_SESSION_KEY);
+  if (!stored) return null;
+  try {
+    const session = JSON.parse(stored) as { expiresAt?: unknown };
+    if (
+      typeof session.expiresAt === "number" &&
+      session.expiresAt > Date.now()
+    ) {
+      return session.expiresAt;
+    }
+  } catch {
+    /* remove invalid or legacy sessions below */
+  }
+  storage.removeItem(AUTH_SESSION_KEY);
+  return null;
+}
+
 export default function FarmApp() {
   const [authenticated, setAuthenticated] = useState(false);
   const [authReady, setAuthReady] = useState(false);
+  const [authExpiresAt, setAuthExpiresAt] = useState<number | null>(null);
   const [view, setView] = useState<FarmView>("dashboard");
   const [mobileNav, setMobileNav] = useState(false);
   const [rabbits, setRabbits] = useState<Rabbit[]>(initialRabbits);
@@ -101,12 +123,40 @@ export default function FarmApp() {
   const [settingsSaved, setSettingsSaved] = useState(false);
 
   useEffect(() => {
-    const hasSession =
-      window.localStorage.getItem("dauson-auth-v1") === "active" ||
-      window.sessionStorage.getItem("dauson-auth-v1") === "active";
-    setAuthenticated(hasSession);
+    const expiresAt =
+      validSessionExpiry(window.localStorage) ??
+      validSessionExpiry(window.sessionStorage);
+    setAuthExpiresAt(expiresAt);
+    setAuthenticated(expiresAt !== null);
     setAuthReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!authenticated || authExpiresAt === null) return;
+
+    const expireSession = () => {
+      window.localStorage.removeItem(AUTH_SESSION_KEY);
+      window.sessionStorage.removeItem(AUTH_SESSION_KEY);
+      setAuthenticated(false);
+      setAuthExpiresAt(null);
+      setMobileNav(false);
+      setModal(null);
+      setTransactionModal(false);
+      setStockModal(false);
+      setBreedingModal(false);
+      setHealthModal(false);
+      setTaskModal(false);
+    };
+
+    const remaining = authExpiresAt - Date.now();
+    if (remaining <= 0) {
+      expireSession();
+      return;
+    }
+
+    const timeout = window.setTimeout(expireSession, remaining);
+    return () => window.clearTimeout(timeout);
+  }, [authenticated, authExpiresAt]);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("dauson-rabbits-v2");
@@ -424,16 +474,28 @@ export default function FarmApp() {
     const otherStorage = remember
       ? window.sessionStorage
       : window.localStorage;
-    persistentStorage.setItem("dauson-auth-v1", "active");
-    otherStorage.removeItem("dauson-auth-v1");
+    const expiresAt = Date.now() + AUTH_SESSION_DURATION;
+    persistentStorage.setItem(
+      AUTH_SESSION_KEY,
+      JSON.stringify({ expiresAt }),
+    );
+    otherStorage.removeItem(AUTH_SESSION_KEY);
+    setAuthExpiresAt(expiresAt);
     setAuthenticated(true);
   };
 
   const logout = () => {
-    window.localStorage.removeItem("dauson-auth-v1");
-    window.sessionStorage.removeItem("dauson-auth-v1");
+    window.localStorage.removeItem(AUTH_SESSION_KEY);
+    window.sessionStorage.removeItem(AUTH_SESSION_KEY);
+    setAuthExpiresAt(null);
     setMobileNav(false);
     setView("dashboard");
+    setModal(null);
+    setTransactionModal(false);
+    setStockModal(false);
+    setBreedingModal(false);
+    setHealthModal(false);
+    setTaskModal(false);
     setAuthenticated(false);
   };
 

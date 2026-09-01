@@ -26,3 +26,15 @@ asks for network access, allow Node.js on private networks. Use the port printed
 by Next.js if port 3000 is already occupied.
 
 Rabbit registry changes are saved to the browser automatically. Farm records can be filtered, sorted and exported to PDF or Excel.
+
+## Local preview login
+
+Use the following credentials to access the local interface:
+
+- Email: `admin@dausonfarm.com`
+- Password: `Farm@2026`
+
+Login sessions expire automatically after six hours.
+
+This is a client-side preview gate. Replace it with server-side authentication
+before deploying the application to production.
