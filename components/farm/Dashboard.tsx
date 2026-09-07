@@ -14,7 +14,7 @@ import { Card, Status } from "./ui";
 export function Dashboard({
   rabbits,
   tasks,
-  setTasks,
+  toggleTask,
   inventory,
   breeding,
   healthy,
@@ -27,7 +27,7 @@ export function Dashboard({
 }: {
   rabbits: Rabbit[];
   tasks: FarmTask[];
-  setTasks: React.Dispatch<React.SetStateAction<FarmTask[]>>;
+  toggleTask: (task: FarmTask) => void;
   inventory: FeedRecord[];
   breeding: BreedingRecord[];
   healthy: number;
@@ -221,13 +221,7 @@ export function Dashboard({
                       ? `Mark ${task.title} incomplete`
                       : `Mark ${task.title} complete`
                   }
-                  onClick={() =>
-                    setTasks((current) =>
-                      current.map((t) =>
-                        t.id === task.id ? { ...t, done: !t.done } : t,
-                      ),
-                    )
-                  }
+                  onClick={() => toggleTask(task)}
                   className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border ${task.done ? "border-emerald-700 bg-emerald-700 text-white" : "border-stone-300 bg-white"}`}
                 >
                   {task.done && <Icon name="check" className="h-3 w-3" />}

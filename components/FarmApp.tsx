@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "./Icon";
 import { LoginScreen } from "./LoginScreen";
 import { Dashboard, TaskModal } from "./farm/Dashboard";
@@ -32,6 +32,7 @@ import type {
   Rabbit,
   Transaction,
 } from "../lib/types";
+import type { FarmCollection, FarmDatabase } from "../lib/farm-store";
 
 const nav: {
   id: FarmView;
@@ -64,6 +65,47 @@ const emptyRabbit: Omit<Rabbit, "id"> = {
 
 const AUTH_SESSION_KEY = "dauson-auth-v1";
 const AUTH_SESSION_DURATION = 6 * 60 * 60 * 1000;
+const LEGACY_STORAGE_KEYS = {
+  rabbits: "dauson-rabbits-v2",
+  transactions: "dauson-transactions-v1",
+  inventory: "dauson-inventory-v1",
+  breeding: "dauson-breeding-v1",
+  health: "dauson-health-v1",
+  tasks: "dauson-tasks-v1",
+} satisfies Record<FarmCollection, string>;
+
+async function farmDataRequest(body?: Record<string, unknown>) {
+  const response = await fetch("/api/farm-data", {
+    method: body ? "POST" : "GET",
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+    cache: "no-store",
+  });
+  const result = (await response.json()) as FarmDatabase & { error?: string };
+  if (!response.ok) throw new Error(result.error ?? "Unable to save farm records");
+  return result;
+}
+
+function readLegacyData() {
+  const database: Partial<Record<FarmCollection, unknown[]>> = {};
+  const keysToRemove: string[] = [];
+  for (const [collection, key] of Object.entries(LEGACY_STORAGE_KEYS) as Array<
+    [FarmCollection, string]
+  >) {
+    const stored = window.localStorage.getItem(key);
+    if (!stored) continue;
+    try {
+      const records = JSON.parse(stored) as unknown;
+      if (Array.isArray(records)) {
+        database[collection] = records;
+        keysToRemove.push(key);
+      }
+    } catch {
+      // Leave invalid legacy data untouched so it can be inspected manually.
+    }
+  }
+  return { database, keysToRemove };
+}
 
 function validSessionExpiry(storage: Storage) {
   const stored = storage.getItem(AUTH_SESSION_KEY);
@@ -96,7 +138,7 @@ export default function FarmApp() {
   const [breeding, setBreeding] = useState<BreedingRecord[]>(breedingRecords);
   const [health, setHealth] = useState<HealthRecord[]>(healthRecords);
   const [tasks, setTasks] = useState<FarmTask[]>(initialTasks);
-  const [hydrated, setHydrated] = useState(false);
+  const [dataReady, setDataReady] = useState(false);
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [transactionModal, setTransactionModal] = useState(false);
   const [editingTransaction, setEditingTransaction] =
@@ -121,6 +163,18 @@ export default function FarmApp() {
   const [sex, setSex] = useState("All sexes");
   const [sort, setSort] = useState("tag-asc");
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const revisionRef = useRef(0);
+
+  const applyDatabase = useCallback((database: FarmDatabase) => {
+    if (database.revision < revisionRef.current) return;
+    revisionRef.current = database.revision;
+    setRabbits(database.rabbits);
+    setFinanceTransactions(database.transactions);
+    setInventory(database.inventory);
+    setBreeding(database.breeding);
+    setHealth(database.health);
+    setTasks(database.tasks);
+  }, []);
 
   useEffect(() => {
     const expiresAt =
@@ -159,103 +213,42 @@ export default function FarmApp() {
   }, [authenticated, authExpiresAt]);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("dauson-rabbits-v2");
-    if (stored) {
+    let active = true;
+    const load = async () => {
       try {
-        const savedRabbits = JSON.parse(stored) as Array<
-          Rabbit & { sire?: string; dam?: string }
-        >;
-        setRabbits(
-          savedRabbits.map(({ sire: _sire, dam: _dam, ...rabbit }) => rabbit),
+        const legacy = readLegacyData();
+        const database = await farmDataRequest(
+          legacy.keysToRemove.length
+            ? { action: "merge-legacy", database: legacy.database }
+            : undefined,
         );
-      } catch {
-        /* keep seeded records */
+        if (!active) return;
+        applyDatabase(database);
+        for (const key of legacy.keysToRemove) window.localStorage.removeItem(key);
+      } catch (error) {
+        if (active) {
+          setToast(error instanceof Error ? error.message : "Unable to load shared records");
+        }
+      } finally {
+        if (active) setDataReady(true);
       }
-    }
-    const storedTransactions = window.localStorage.getItem(
-      "dauson-transactions-v1",
-    );
-    if (storedTransactions) {
-      try {
-        setFinanceTransactions(JSON.parse(storedTransactions) as Transaction[]);
-      } catch {
-        /* keep seeded transactions */
-      }
-    }
-    const storedInventory = window.localStorage.getItem("dauson-inventory-v1");
-    if (storedInventory) {
-      try {
-        const savedInventory = JSON.parse(storedInventory) as FeedRecord[];
-        setInventory([
-          ...savedInventory,
-          ...feedRecords.filter(
-            (seeded) => !savedInventory.some((saved) => saved.id === seeded.id),
-          ),
-        ]);
-      } catch {
-        /* keep seeded inventory */
-      }
-    }
-    const storedBreeding = window.localStorage.getItem("dauson-breeding-v1");
-    if (storedBreeding) {
-      try {
-        setBreeding(JSON.parse(storedBreeding) as BreedingRecord[]);
-      } catch {
-        /* keep seeded breeding records */
-      }
-    }
-    const storedHealth = window.localStorage.getItem("dauson-health-v1");
-    if (storedHealth) {
-      try {
-        setHealth(JSON.parse(storedHealth) as HealthRecord[]);
-      } catch {
-        /* keep seeded health records */
-      }
-    }
-    const storedTasks = window.localStorage.getItem("dauson-tasks-v1");
-    if (storedTasks) {
-      try {
-        setTasks(JSON.parse(storedTasks) as FarmTask[]);
-      } catch {
-        /* keep seeded tasks */
-      }
-    }
-    setHydrated(true);
-  }, []);
+    };
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [applyDatabase]);
 
   useEffect(() => {
-    if (hydrated)
-      window.localStorage.setItem("dauson-rabbits-v2", JSON.stringify(rabbits));
-  }, [rabbits, hydrated]);
-  useEffect(() => {
-    if (hydrated)
-      window.localStorage.setItem(
-        "dauson-transactions-v1",
-        JSON.stringify(financeTransactions),
-      );
-  }, [financeTransactions, hydrated]);
-  useEffect(() => {
-    if (hydrated)
-      window.localStorage.setItem(
-        "dauson-inventory-v1",
-        JSON.stringify(inventory),
-      );
-  }, [inventory, hydrated]);
-  useEffect(() => {
-    if (hydrated)
-      window.localStorage.setItem(
-        "dauson-breeding-v1",
-        JSON.stringify(breeding),
-      );
-  }, [breeding, hydrated]);
-  useEffect(() => {
-    if (hydrated)
-      window.localStorage.setItem("dauson-health-v1", JSON.stringify(health));
-  }, [health, hydrated]);
-  useEffect(() => {
-    if (hydrated)
-      window.localStorage.setItem("dauson-tasks-v1", JSON.stringify(tasks));
-  }, [tasks, hydrated]);
+    if (!dataReady) return;
+    const refresh = () => void farmDataRequest().then(applyDatabase).catch(() => undefined);
+    const interval = window.setInterval(refresh, 15_000);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [applyDatabase, dataReady]);
   useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(""), 2800);
@@ -308,163 +301,129 @@ export default function FarmApp() {
     setDraft(rabbit);
     setModal("edit");
   };
-  const saveRabbit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (modal === "edit" && draft.id) {
-      setRabbits((current) =>
-        current.map((r) =>
-          r.id === draft.id ? ({ ...draft, id: draft.id } as Rabbit) : r,
-        ),
-      );
-      setToast(`${draft.name} was updated`);
-    } else {
-      const next =
-        Math.max(0, ...rabbits.map((r) => Number(r.id.replace(/\D/g, "")))) + 1;
-      setRabbits((current) => [
-        { ...draft, id: `RB-${String(next).padStart(4, "0")}` } as Rabbit,
-        ...current,
-      ]);
-      setToast(`${draft.name} was added to the herd`);
-    }
-    setModal(null);
+  const persistRecord = async (
+    collection: FarmCollection,
+    record: object,
+  ) => {
+    const database = await farmDataRequest({ collection, action: "upsert", record });
+    applyDatabase(database);
   };
-  const removeRabbit = (rabbit: Rabbit) => {
+
+  const saveRabbit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      await persistRecord("rabbits", draft);
+      setToast(
+        modal === "edit"
+          ? `${draft.name} was updated`
+          : `${draft.name} was added to the herd`,
+      );
+      setModal(null);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Rabbit could not be saved");
+    }
+  };
+  const removeRabbit = async (rabbit: Rabbit) => {
     if (
       !window.confirm(
         `Delete ${rabbit.name} (${rabbit.tag}) from the digital register?`,
       )
     )
       return;
-    setRabbits((current) => current.filter((r) => r.id !== rabbit.id));
-    setToast(`${rabbit.name} was removed`);
+    try {
+      const database = await farmDataRequest({
+        collection: "rabbits",
+        action: "delete",
+        id: rabbit.id,
+      });
+      applyDatabase(database);
+      setToast(`${rabbit.name} was removed`);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Rabbit could not be removed");
+    }
   };
-  const saveTransaction = (
+  const saveTransaction = async (
     transaction: Omit<Transaction, "id">,
     transactionId?: string,
   ) => {
-    if (transactionId) {
-      setFinanceTransactions((current) =>
-        current.map((item) =>
-          item.id === transactionId
-            ? { ...transaction, id: transactionId }
-            : item,
-        ),
-      );
+    try {
+      await persistRecord("transactions", {
+        ...transaction,
+        ...(transactionId ? { id: transactionId } : {}),
+      });
       setTransactionModal(false);
       setEditingTransaction(null);
-      setToast(`${transactionId} was updated`);
-      return;
-    }
-    const next =
-      Math.max(
-        0,
-        ...financeTransactions.map((item) =>
-          Number(item.id.replace(/\D/g, "")),
-        ),
-      ) + 1;
-    setFinanceTransactions((current) => [
-      { ...transaction, id: `TX-${String(next).padStart(3, "0")}` },
-      ...current,
-    ]);
-    setTransactionModal(false);
-    setEditingTransaction(null);
-    setToast("Transaction added to the financial ledger");
-  };
-  const saveStock = (stock: Omit<FeedRecord, "id">, stockId?: string) => {
-    if (stockId) {
-      setInventory((current) =>
-        current.map((item) =>
-          item.id === stockId ? { ...stock, id: stockId } : item,
-        ),
+      setToast(
+        transactionId
+          ? `${transactionId} was updated`
+          : "Transaction added to the financial ledger",
       );
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Transaction could not be saved");
+    }
+  };
+  const saveStock = async (stock: Omit<FeedRecord, "id">, stockId?: string) => {
+    try {
+      await persistRecord("inventory", {
+        ...stock,
+        ...(stockId ? { id: stockId } : {}),
+      });
       setStockModal(false);
       setEditingStock(null);
-      setToast(`${stock.item} was updated`);
-      return;
+      setToast(stockId ? `${stock.item} was updated` : `${stock.item} was added to inventory`);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Inventory could not be saved");
     }
-    const next =
-      Math.max(
-        0,
-        ...inventory.map((item) => Number(item.id.replace(/\D/g, ""))),
-      ) + 1;
-    setInventory((current) => [
-      { ...stock, id: `ST-${String(next).padStart(3, "0")}` },
-      ...current,
-    ]);
-    setStockModal(false);
-    setEditingStock(null);
-    setToast(`${stock.item} was added to inventory`);
   };
-  const saveBreeding = (
+  const saveBreeding = async (
     record: Omit<BreedingRecord, "id">,
     recordId?: string,
   ) => {
-    if (recordId) {
-      setBreeding((current) =>
-        current.map((item) =>
-          item.id === recordId ? { ...record, id: recordId } : item,
-        ),
-      );
+    try {
+      await persistRecord("breeding", {
+        ...record,
+        ...(recordId ? { id: recordId } : {}),
+      });
       setBreedingModal(false);
       setEditingBreeding(null);
-      setToast(`${recordId} was updated`);
-      return;
+      setToast(recordId ? `${recordId} was updated` : "Mating added to the breeding register");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Breeding record could not be saved");
     }
-    const next =
-      Math.max(
-        0,
-        ...breeding.map((item) => Number(item.id.replace(/\D/g, ""))),
-      ) + 1;
-    setBreeding((current) => [
-      { ...record, id: `BR-${String(next).padStart(3, "0")}` },
-      ...current,
-    ]);
-    setBreedingModal(false);
-    setEditingBreeding(null);
-    setToast("Mating added to the breeding register");
   };
-  const saveHealth = (record: Omit<HealthRecord, "id">, recordId?: string) => {
-    if (recordId) {
-      setHealth((current) =>
-        current.map((item) =>
-          item.id === recordId ? { ...record, id: recordId } : item,
-        ),
-      );
+  const saveHealth = async (record: Omit<HealthRecord, "id">, recordId?: string) => {
+    try {
+      await persistRecord("health", {
+        ...record,
+        ...(recordId ? { id: recordId } : {}),
+      });
       setHealthModal(false);
       setEditingHealth(null);
-      setToast(`${recordId} was updated`);
-      return;
+      setToast(recordId ? `${recordId} was updated` : "Entry added to the health register");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Health record could not be saved");
     }
-    const next =
-      Math.max(0, ...health.map((item) => Number(item.id.replace(/\D/g, "")))) +
-      1;
-    setHealth((current) => [
-      { ...record, id: `HL-${String(next).padStart(3, "0")}` },
-      ...current,
-    ]);
-    setHealthModal(false);
-    setEditingHealth(null);
-    setToast("Entry added to the health register");
   };
-  const saveTask = (task: Omit<FarmTask, "id">, taskId?: string) => {
-    if (taskId) {
-      setTasks((current) =>
-        current.map((item) =>
-          item.id === taskId ? { ...task, id: taskId } : item,
-        ),
-      );
+  const saveTask = async (task: Omit<FarmTask, "id">, taskId?: string) => {
+    try {
+      await persistRecord("tasks", {
+        ...task,
+        ...(taskId ? { id: taskId } : {}),
+      });
       setTaskModal(false);
       setEditingTask(null);
-      setToast(`${taskId} was updated`);
-      return;
+      setToast(taskId ? `${taskId} was updated` : "Task added to today’s work plan");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Task could not be saved");
     }
-    const next =
-      Math.max(0, ...tasks.map((item) => Number(item.id.replace(/\D/g, "")))) +
-      1;
-    setTasks((current) => [{ ...task, id: `T-${next}` }, ...current]);
-    setTaskModal(false);
-    setEditingTask(null);
-    setToast("Task added to today’s work plan");
+  };
+
+  const toggleTask = async (task: FarmTask) => {
+    try {
+      await persistRecord("tasks", { ...task, done: !task.done });
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Task could not be updated");
+    }
   };
 
   const login = (remember: boolean) => {
@@ -652,7 +611,7 @@ export default function FarmApp() {
             <Dashboard
               rabbits={rabbits}
               tasks={tasks}
-              setTasks={setTasks}
+              toggleTask={toggleTask}
               inventory={inventory}
               breeding={breeding}
               healthy={healthy}

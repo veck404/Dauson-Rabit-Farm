@@ -25,7 +25,15 @@ On the other device, open `http://<IPv4-address>:3000` — for example,
 asks for network access, allow Node.js on private networks. Use the port printed
 by Next.js if port 3000 is already occupied.
 
-Rabbit registry changes are saved to the browser automatically. Farm records can be filtered, sorted and exported to PDF or Excel.
+Farm records are shared through the running Next.js server and stored as readable
+JSON in `data/farm-data.json`. Devices connected to the same server see saved
+changes automatically (within 15 seconds, or immediately when returning to the
+browser tab). Keep one `npm run dev` or `npm start` server running on the host
+computer; back up the JSON file with the rest of the farm data.
+
+This file-based store is intended for a single long-running Node.js server. Do
+not deploy it to an ephemeral or multi-instance serverless host such as Vercel;
+use a managed SQL database for that deployment model.
 
 ## Local preview login
 
