@@ -1,5 +1,4 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { createClient } from "@supabase/supabase-js";
 import {
   breedingRecords,
   feedRecords,
@@ -34,10 +33,25 @@ export type FarmCollection = keyof Pick<
   "rabbits" | "transactions" | "inventory" | "breeding" | "health" | "tasks"
 >;
 
-const databaseDirectory = path.join(process.cwd(), "data");
-const databasePath = path.join(databaseDirectory, "farm-data.json");
-const temporaryPath = path.join(databaseDirectory, "farm-data.tmp.json");
+// ---------------------------------------------------------------------------
+// Supabase client (server-side only — uses the service role key)
+// ---------------------------------------------------------------------------
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "Missing Supabase env vars. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local",
+    );
+  }
+  return createClient(url, key, { auth: { persistSession: false } });
+}
 
+const ROW_ID = "singleton"; // We store the whole DB in one row
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 const collectionNames: FarmCollection[] = [
   "rabbits",
   "transactions",
@@ -81,7 +95,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function normalizeDatabase(value: unknown): FarmDatabase {
   const seed = seededDatabase();
   if (!isRecord(value)) return seed;
-
   return {
     version: 1,
     revision:
@@ -107,28 +120,91 @@ function normalizeDatabase(value: unknown): FarmDatabase {
   };
 }
 
-async function writeDatabase(database: FarmDatabase) {
-  await mkdir(databaseDirectory, { recursive: true });
-  await writeFile(temporaryPath, `${JSON.stringify(database, null, 2)}\n`, "utf8");
-  await rename(temporaryPath, databasePath);
+function nextId(collection: FarmCollection, records: Array<{ id: string }>) {
+  const { prefix, width } = idFormats[collection];
+  const next =
+    Math.max(0, ...records.map(({ id }) => Number(id.replace(/\D/g, "")) || 0)) + 1;
+  return `${prefix}${String(next).padStart(width, "0")}`;
 }
 
-async function loadDatabase() {
-  try {
-    const parsed = JSON.parse(await readFile(databasePath, "utf8")) as unknown;
-    const normalized = normalizeDatabase(parsed);
-    if (JSON.stringify(parsed) !== JSON.stringify(normalized)) {
-      await writeDatabase(normalized);
-    }
-    return normalized;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-    const database = seededDatabase();
-    await writeDatabase(database);
-    return database;
+// ---------------------------------------------------------------------------
+// Row shape returned by Supabase (snake_case column names)
+// ---------------------------------------------------------------------------
+type DbRow = {
+  id: string;
+  version: number;
+  revision: number;
+  updated_at: string;
+  rabbits: unknown;
+  transactions: unknown;
+  inventory: unknown;
+  breeding: unknown;
+  health: unknown;
+  tasks: unknown;
+};
+
+function rowToDatabase(row: DbRow): FarmDatabase {
+  return normalizeDatabase({
+    version: row.version,
+    revision: row.revision,
+    updatedAt: row.updated_at,
+    rabbits: row.rabbits,
+    transactions: row.transactions,
+    inventory: row.inventory,
+    breeding: row.breeding,
+    health: row.health,
+    tasks: row.tasks,
+  });
+}
+
+function databaseToRow(db: FarmDatabase): Omit<DbRow, "id"> {
+  return {
+    version: db.version,
+    revision: db.revision,
+    updated_at: db.updatedAt,
+    rabbits: db.rabbits,
+    transactions: db.transactions,
+    inventory: db.inventory,
+    breeding: db.breeding,
+    health: db.health,
+    tasks: db.tasks,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Core read / write
+// ---------------------------------------------------------------------------
+async function loadDatabase(): Promise<FarmDatabase> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("farm_data")
+    .select("*")
+    .eq("id", ROW_ID)
+    .maybeSingle<DbRow>();
+
+  if (error) throw new Error(`Supabase read error: ${error.message}`);
+
+  if (!data) {
+    // First run — seed the database
+    const seed = seededDatabase();
+    await saveDatabase(seed);
+    return seed;
   }
+
+  return rowToDatabase(data);
 }
 
+async function saveDatabase(database: FarmDatabase): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from("farm_data")
+    .upsert({ id: ROW_ID, ...databaseToRow(database) }, { onConflict: "id" });
+  if (error) throw new Error(`Supabase write error: ${error.message}`);
+}
+
+// ---------------------------------------------------------------------------
+// Serialised operation queue (prevents concurrent writes racing each other)
+// ---------------------------------------------------------------------------
 let operationQueue: Promise<void> = Promise.resolve();
 
 function withLock<T>(operation: () => Promise<T>): Promise<T> {
@@ -140,16 +216,11 @@ function withLock<T>(operation: () => Promise<T>): Promise<T> {
   return result;
 }
 
+// ---------------------------------------------------------------------------
+// Public API  (identical signatures to the old file-based version)
+// ---------------------------------------------------------------------------
 export function readFarmDatabase() {
   return withLock(loadDatabase);
-}
-
-function nextId(collection: FarmCollection, records: Array<{ id: string }>) {
-  const { prefix, width } = idFormats[collection];
-  const next =
-    Math.max(0, ...records.map(({ id }) => Number(id.replace(/\D/g, "")) || 0)) +
-    1;
-  return `${prefix}${String(next).padStart(width, "0")}`;
 }
 
 export function mutateFarmDatabase(input: {
@@ -183,7 +254,7 @@ export function mutateFarmDatabase(input: {
 
     database.revision += 1;
     database.updatedAt = new Date().toISOString();
-    await writeDatabase(database);
+    await saveDatabase(database);
     return database;
   });
 }
@@ -194,20 +265,21 @@ export function mergeLegacyDatabase(input: unknown) {
     const database = await loadDatabase();
 
     for (const collection of collectionNames) {
-      const incoming = input[collection];
+      const incoming = (input as Record<string, unknown>)[collection];
       if (!Array.isArray(incoming)) continue;
       const merged = new Map(
         (database[collection] as Array<{ id: string }>).map((record) => [record.id, record]),
       );
       for (const record of incoming) {
-        if (isRecord(record) && typeof record.id === "string") merged.set(record.id, record as { id: string });
+        if (isRecord(record) && typeof record.id === "string")
+          merged.set(record.id, record as { id: string });
       }
       (database[collection] as unknown[]) = Array.from(merged.values());
     }
 
     database.revision += 1;
     database.updatedAt = new Date().toISOString();
-    await writeDatabase(database);
+    await saveDatabase(database);
     return database;
   });
 }
