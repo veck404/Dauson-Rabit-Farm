@@ -250,7 +250,7 @@ export function LoginScreen({
           <div className="relative my-auto max-w-xl py-16">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.16em] text-emerald-100/70">
               <span className="h-1.5 w-1.5 rounded-full bg-[#efc557]" />
-              One farm. One trusted record.
+              One farm. One record.
             </span>
             <h1 className="mt-6 max-w-lg font-serif text-5xl font-bold leading-[1.05] tracking-[-0.035em] xl:text-[58px]">
               Run the farm with clarity.
