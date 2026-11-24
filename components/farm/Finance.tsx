@@ -13,12 +13,14 @@ export function Finance({
   transactions,
   add,
   edit,
+  remove,
 }: {
   income: number;
   expense: number;
   transactions: Transaction[];
   add: () => void;
   edit: (transaction: Transaction) => void;
+  remove: (transaction: Transaction) => void;
 }) {
   const pendingIncome = transactions.filter(
     (item) => item.type === "Income" && item.status === "Pending",
@@ -58,6 +60,8 @@ export function Finance({
     >
       <RecordTable
         headers={["Date", "Type", "Category", "Description", "Amount", "Reference", "Status", "Actions"]}
+        emptyMessage="No financial transactions recorded yet."
+        emptyAction={{ label: "Add transaction", onClick: add }}
         rows={transactions.map((item) => [
           shortDate(item.date),
           <span key={item.id} className={item.type === "Income" ? "font-semibold text-emerald-700" : "font-semibold text-rose-600"}>{item.type}</span>,
@@ -66,9 +70,14 @@ export function Finance({
           <strong key={`amount-${item.id}`}>{item.type === "Income" ? "+" : "−"}{money(item.amount)}</strong>,
           item.id,
           <Status key={`status-${item.id}`}>{item.status}</Status>,
-          <button key={`edit-${item.id}`} type="button" aria-label={`Edit transaction ${item.id}`} title="Adjust entry" onClick={() => edit(item)} className="action bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800">
-            <Icon name="edit" className="h-3.5 w-3.5" />
-          </button>,
+          <div key={`actions-${item.id}`} className="flex gap-1">
+            <button type="button" aria-label={`Edit transaction ${item.id}`} title="Adjust entry" onClick={() => edit(item)} className="action bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800">
+              <Icon name="edit" className="h-3.5 w-3.5" />
+            </button>
+            <button type="button" aria-label={`Delete transaction ${item.id}`} title="Delete entry" onClick={() => remove(item)} className="action bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700">
+              <Icon name="trash" className="h-3.5 w-3.5" />
+            </button>
+          </div>,
         ])}
       />
     </Module>

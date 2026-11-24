@@ -11,10 +11,12 @@ export function Breeding({
   records,
   add,
   edit,
+  remove,
 }: {
   records: BreedingRecord[];
   add: () => void;
   edit: (record: BreedingRecord) => void;
+  remove: (record: BreedingRecord) => void;
 }) {
   const rows: ExportRow[] = records.map((r) => ({
     ID: r.id,
@@ -78,6 +80,8 @@ export function Breeding({
           "Status",
           "Actions",
         ]}
+        emptyMessage="No breeding records logged yet."
+        emptyAction={{ label: "Record mating", onClick: add }}
         rows={records.map((r) => [
           r.id,
           r.doe,
@@ -86,9 +90,14 @@ export function Breeding({
           shortDate(r.dueDate),
           r.litterSize ? `${r.bornAlive}/${r.litterSize} alive` : "Pending",
           <Status key={r.id}>{r.status}</Status>,
-          <button key={`edit-${r.id}`} type="button" aria-label={`Edit breeding record ${r.id}`} title="Adjust breeding record" onClick={() => edit(r)} className="action bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800">
-            <Icon name="edit" className="h-3.5 w-3.5" />
-          </button>,
+          <div key={`actions-${r.id}`} className="flex gap-1">
+            <button type="button" aria-label={`Edit breeding record ${r.id}`} title="Adjust breeding record" onClick={() => edit(r)} className="action bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800">
+              <Icon name="edit" className="h-3.5 w-3.5" />
+            </button>
+            <button type="button" aria-label={`Delete breeding record ${r.id}`} title="Delete breeding record" onClick={() => remove(r)} className="action bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700">
+              <Icon name="trash" className="h-3.5 w-3.5" />
+            </button>
+          </div>,
         ])}
       />
     </Module>
@@ -100,11 +109,13 @@ export function Health({
   rabbitCount,
   add,
   edit,
+  remove,
 }: {
   records: HealthRecord[];
   rabbitCount: number;
   add: () => void;
   edit: (record: HealthRecord) => void;
+  remove: (record: HealthRecord) => void;
 }) {
   const rows: ExportRow[] = records.map((r) => ({
     ID: r.id,
@@ -162,6 +173,8 @@ export function Health({
           "Status",
           "Actions",
         ]}
+        emptyMessage="No clinical or health care records found."
+        emptyAction={{ label: "New health record", onClick: add }}
         rows={records.map((r) => [
           shortDate(r.date),
           <strong key={r.id}>
@@ -173,9 +186,14 @@ export function Health({
           r.medication,
           shortDate(r.nextDue),
           <Status key={r.id}>{r.status}</Status>,
-          <button key={`edit-${r.id}`} type="button" aria-label={`Edit health record ${r.id}`} title="Adjust health record" onClick={() => edit(r)} className="action bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800">
-            <Icon name="edit" className="h-3.5 w-3.5" />
-          </button>,
+          <div key={`actions-${r.id}`} className="flex gap-1">
+            <button type="button" aria-label={`Edit health record ${r.id}`} title="Adjust health record" onClick={() => edit(r)} className="action bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800">
+              <Icon name="edit" className="h-3.5 w-3.5" />
+            </button>
+            <button type="button" aria-label={`Delete health record ${r.id}`} title="Delete health record" onClick={() => remove(r)} className="action bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700">
+              <Icon name="trash" className="h-3.5 w-3.5" />
+            </button>
+          </div>,
         ])}
       />
     </Module>
@@ -186,11 +204,13 @@ export function Feed({
   inventory,
   add,
   edit,
+  remove,
   dailyConsumptionKg,
 }: {
   inventory: FeedRecord[];
   add: () => void;
   edit: (record: FeedRecord) => void;
+  remove: (record: FeedRecord) => void;
   dailyConsumptionKg: number;
 }) {
   const rows: ExportRow[] = inventory.map((r) => ({
@@ -254,6 +274,8 @@ export function Feed({
           "Status",
           "Actions",
         ]}
+        emptyMessage="No inventory or feed stock listed yet."
+        emptyAction={{ label: "Add stock", onClick: add }}
         rows={inventory.map((r) => [
           <strong key={r.id}>
             {r.item}
@@ -266,9 +288,14 @@ export function Feed({
           shortDate(r.date),
           money(r.cost),
           <Status key={r.id}>{r.stockStatus}</Status>,
-          <button key={`edit-${r.id}`} type="button" aria-label={`Edit stock item ${r.item}`} title="Adjust stock" onClick={() => edit(r)} className="action bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800">
-            <Icon name="edit" className="h-3.5 w-3.5" />
-          </button>,
+          <div key={`actions-${r.id}`} className="flex gap-1">
+            <button type="button" aria-label={`Edit stock item ${r.item}`} title="Adjust stock" onClick={() => edit(r)} className="action bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800">
+              <Icon name="edit" className="h-3.5 w-3.5" />
+            </button>
+            <button type="button" aria-label={`Delete stock item ${r.item}`} title="Delete stock item" onClick={() => remove(r)} className="action bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700">
+              <Icon name="trash" className="h-3.5 w-3.5" />
+            </button>
+          </div>,
         ])}
       />
     </Module>

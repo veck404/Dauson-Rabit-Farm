@@ -270,6 +270,18 @@ export default function FarmApp() {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setView("rabbits");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const filtered = useMemo(() => {
     const query = search.toLowerCase().trim();
     return rabbits
@@ -357,6 +369,40 @@ export default function FarmApp() {
       setToast(error instanceof Error ? error.message : "Rabbit could not be removed");
     }
   };
+
+  const deleteRecord = async (
+    collection: FarmCollection,
+    id: string,
+    label: string,
+  ) => {
+    if (!window.confirm(`Delete ${label} permanently from records?`)) return;
+    try {
+      const database = await farmDataRequest({
+        collection,
+        action: "delete",
+        id,
+      });
+      applyDatabase(database);
+      setToast(`${label} was deleted`);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Could not delete record");
+    }
+  };
+
+  const removeTransaction = (t: Transaction) =>
+    deleteRecord("transactions", t.id, `Transaction ${t.id} (${t.description || money(t.amount)})`);
+
+  const removeStock = (s: FeedRecord) =>
+    deleteRecord("inventory", s.id, `Stock item "${s.item}"`);
+
+  const removeBreeding = (b: BreedingRecord) =>
+    deleteRecord("breeding", b.id, `Breeding record ${b.id} (${b.doe})`);
+
+  const removeHealth = (h: HealthRecord) =>
+    deleteRecord("health", h.id, `Health record ${h.id} (${h.rabbit})`);
+
+  const removeTask = (t: FarmTask) =>
+    deleteRecord("tasks", t.id, `Task "${t.title}"`);
   const saveTransaction = async (
     transaction: Omit<Transaction, "id">,
     transactionId?: string,
@@ -523,6 +569,12 @@ export default function FarmApp() {
               >
                 <Icon name={item.icon} className="h-[18px] w-[18px]" />
                 <span>{item.label}</span>
+                {item.id === "dashboard" &&
+                  tasks.filter((t) => !t.done).length > 0 && (
+                    <span className="ml-auto rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-200">
+                      {tasks.filter((t) => !t.done).length}
+                    </span>
+                  )}
                 {item.id === "health" &&
                   health.filter((record) => record.status === "Ongoing")
                     .length > 0 && (
@@ -610,11 +662,35 @@ export default function FarmApp() {
               <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-rose-500 ring-2 ring-white" />
             </button>
             <button
-              onClick={addRabbit}
+              onClick={
+                view === "dashboard"
+                  ? () => { setEditingTask(null); setTaskModal(true); }
+                  : view === "finance"
+                  ? () => { setEditingTransaction(null); setTransactionModal(true); }
+                  : view === "feed"
+                  ? () => { setEditingStock(null); setStockModal(true); }
+                  : view === "breeding"
+                  ? () => { setEditingBreeding(null); setBreedingModal(true); }
+                  : view === "health"
+                  ? () => { setEditingHealth(null); setHealthModal(true); }
+                  : addRabbit
+              }
               className="flex items-center gap-2 rounded-xl bg-[#123f34] px-3.5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#0d332a]"
             >
               <Icon name="plus" className="h-4 w-4" />
-              <span className="hidden sm:inline">Add Rabbit</span>
+              <span className="hidden sm:inline">
+                {view === "dashboard"
+                  ? "Add Task"
+                  : view === "finance"
+                  ? "Add Transaction"
+                  : view === "feed"
+                  ? "Add Stock"
+                  : view === "breeding"
+                  ? "Record Mating"
+                  : view === "health"
+                  ? "New Health Record"
+                  : "Add Rabbit"}
+              </span>
             </button>
           </div>
         </header>
@@ -640,6 +716,7 @@ export default function FarmApp() {
                 setEditingTask(task);
                 setTaskModal(true);
               }}
+              removeTask={removeTask}
               adminName={settings.manager}
               farmName={settings.farmName}
             />
@@ -681,6 +758,7 @@ export default function FarmApp() {
                 setEditingBreeding(record);
                 setBreedingModal(true);
               }}
+              remove={removeBreeding}
             />
           )}
           {view === "health" && (
@@ -695,6 +773,7 @@ export default function FarmApp() {
                 setEditingHealth(record);
                 setHealthModal(true);
               }}
+              remove={removeHealth}
             />
           )}
           {view === "feed" && (
@@ -708,6 +787,7 @@ export default function FarmApp() {
                 setEditingStock(record);
                 setStockModal(true);
               }}
+              remove={removeStock}
               dailyConsumptionKg={settings.dailyConsumptionKg}
             />
           )}
@@ -724,6 +804,7 @@ export default function FarmApp() {
                 setEditingTransaction(transaction);
                 setTransactionModal(true);
               }}
+              remove={removeTransaction}
             />
           )}
           {view === "reports" && (

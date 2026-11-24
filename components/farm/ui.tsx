@@ -85,9 +85,13 @@ export function Module({
 export function RecordTable({
   headers,
   rows,
+  emptyMessage = "No records found in this register.",
+  emptyAction,
 }: {
   headers: string[];
   rows: React.ReactNode[][];
+  emptyMessage?: string;
+  emptyAction?: { label: string; onClick: () => void };
 }) {
   return (
     <Card className="overflow-hidden">
@@ -113,6 +117,29 @@ export function RecordTable({
             ))}
           </tbody>
         </table>
+        {rows.length === 0 && (
+          <div className="flex flex-col items-center justify-center p-12 text-center">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-stone-100 text-stone-400">
+              <Icon name="box" className="h-6 w-6" />
+            </div>
+            <p className="mt-3 text-sm font-semibold text-stone-700">
+              {emptyMessage}
+            </p>
+            <p className="mt-1 text-xs text-stone-400">
+              Get started by creating your first entry.
+            </p>
+            {emptyAction && (
+              <button
+                type="button"
+                onClick={emptyAction.onClick}
+                className="btn-primary mt-4 text-xs"
+              >
+                <Icon name="plus" className="h-4 w-4" />
+                {emptyAction.label}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </Card>
   );

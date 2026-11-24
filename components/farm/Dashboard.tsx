@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type React from "react";
 import type {
   BreedingRecord,
@@ -24,6 +24,7 @@ export function Dashboard({
   addRabbit,
   addTask,
   editTask,
+  removeTask,
   adminName,
   farmName,
 }: {
@@ -43,7 +44,11 @@ export function Dashboard({
   farmName: string;
 }) {
   const orderedTasks = [...tasks].sort((a, b) => a.time.localeCompare(b.time));
-  const now = new Date();
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
   const hour = now.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const todayLabel = now.toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -254,12 +259,28 @@ export function Dashboard({
                   aria-label={`Edit task ${task.title}`}
                   title="Edit task"
                   onClick={() => editTask(task)}
-                  className="action shrink-0"
+                  className="action shrink-0 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800"
                 >
                   <Icon name="edit" className="h-3.5 w-3.5" />
                 </button>
+                <button
+                  type="button"
+                  aria-label={`Delete task ${task.title}`}
+                  title="Delete task"
+                  onClick={() => removeTask(task)}
+                  className="action shrink-0 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700"
+                >
+                  <Icon name="trash" className="h-3.5 w-3.5" />
+                </button>
               </div>
             ))}
+            {orderedTasks.length === 0 && (
+              <div className="py-8 text-center text-stone-400">
+                <Icon name="check" className="mx-auto h-7 w-7 text-emerald-600/40" />
+                <p className="mt-2 text-xs font-semibold text-stone-600">All caught up!</p>
+                <p className="text-[10px] text-stone-400">No scheduled farm tasks for today.</p>
+              </div>
+            )}
           </div>
           <div className="p-4 pt-2">
             <button
