@@ -22,7 +22,7 @@ export const shortDate = (value: string) =>
 export const daysUntil = (value: string) =>
   Math.ceil(
     (new Date(`${value}T12:00:00`).getTime() -
-      new Date("2026-08-06T12:00:00").getTime()) /
+      new Date().setHours(12, 0, 0, 0)) /
       86400000,
   );
 
@@ -30,7 +30,7 @@ export const age = (birth: string) => {
   const months = Math.max(
     0,
     Math.floor(
-      (new Date("2026-08-06").getTime() - new Date(birth).getTime()) /
+      (Date.now() - new Date(birth).getTime()) /
         2629800000,
     ),
   );
@@ -79,7 +79,7 @@ export function exportPdf(rows: ExportRow[], title: string) {
   doc.text(`Dauson Farm · ${title}`, 34, 32);
   doc.setFontSize(9);
   doc.text(
-    `Generated 06 Aug 2026  •  ${rows.length} records  •  Farm management archive`,
+    `Generated ${new Date().toLocaleDateString("en-NG", { day: "2-digit", month: "short", year: "numeric" })}  •  ${rows.length} records  •  Farm management archive`,
     34,
     50,
   );

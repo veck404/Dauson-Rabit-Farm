@@ -186,10 +186,12 @@ export function Feed({
   inventory,
   add,
   edit,
+  dailyConsumptionKg,
 }: {
   inventory: FeedRecord[];
   add: () => void;
   edit: (record: FeedRecord) => void;
+  dailyConsumptionKg: number;
 }) {
   const rows: ExportRow[] = inventory.map((r) => ({
     ID: r.id,
@@ -211,7 +213,7 @@ export function Feed({
   );
   const stockValue = inventory.reduce((sum, item) => sum + item.cost, 0);
   const lowStock = inventory.filter((item) => item.stockStatus !== "Good");
-  const dailyConsumption = 36.8;
+  const dailyConsumption = dailyConsumptionKg;
   const daysCover = Math.floor(feedOnHand / dailyConsumption);
   return (
     <Module
@@ -237,7 +239,7 @@ export function Feed({
         ["Feed on hand", `${feedOnHand.toLocaleString("en-NG")} kg`, `~${daysCover} days cover`],
         ["Inventory value", money(stockValue), `${inventory.length} stock lines`],
         ["Low-stock items", String(lowStock.length), `${lowStock.filter((item) => item.stockStatus === "Critical").length} critical item${lowStock.filter((item) => item.stockStatus === "Critical").length === 1 ? "" : "s"}`],
-        ["Daily consumption", `${dailyConsumption} kg`, "Across feeding groups"],
+        ["Daily consumption", `${dailyConsumption} kg`, dailyConsumption > 0 ? "Across feeding groups" : "Set in Farm settings"],
       ]}
     >
       <RecordTable

@@ -24,6 +24,8 @@ export function Dashboard({
   addRabbit,
   addTask,
   editTask,
+  adminName,
+  farmName,
 }: {
   rabbits: Rabbit[];
   tasks: FarmTask[];
@@ -37,13 +39,21 @@ export function Dashboard({
   addRabbit: () => void;
   addTask: () => void;
   editTask: (task: FarmTask) => void;
+  adminName: string;
+  farmName: string;
 }) {
   const orderedTasks = [...tasks].sort((a, b) => a.time.localeCompare(b.time));
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const todayLabel = now.toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  const newThisMonth = rabbits.filter((r) => r.acquiredDate >= startOfMonth).length;
   const kpis = [
     {
       label: "Registered rabbits",
       value: rabbits.length,
-      note: "+3 this month",
+      note: newThisMonth > 0 ? `+${newThisMonth} this month` : "No new arrivals",
       icon: "rabbit" as const,
       tone: "bg-emerald-50 text-emerald-700",
     },
