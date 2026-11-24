@@ -1,5 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  themeColor: "#123f34",
+};
 
 export const metadata: Metadata = {
   title: "Dauson Farm OS · Rabbit Management",
@@ -9,7 +13,6 @@ export const metadata: Metadata = {
     icon: "/icon.svg",
     apple: "/icon.svg",
   },
-  themeColor: "#123f34",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
