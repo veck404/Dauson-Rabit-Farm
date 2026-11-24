@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Dauson Farm OS · Rabbit Management",
+    name: "Rabbit Farm OS",
     short_name: "Rabbit Farm",
     description: "Complete digital rabbit farm operations, records, health, breeding, inventory, finance and reports.",
     start_url: "/",
