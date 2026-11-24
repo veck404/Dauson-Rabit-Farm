@@ -23,7 +23,9 @@ import {
   initialTasks,
   transactions,
 } from "../lib/farm-data";
+import { defaultFarmSettings } from "../lib/types";
 import type {
+  FarmSettings,
   BreedingRecord,
   FarmTask,
   FarmView,
@@ -64,6 +66,7 @@ const emptyRabbit: Omit<Rabbit, "id"> = {
 };
 
 const AUTH_SESSION_KEY = "dauson-auth-v1";
+const FARM_SETTINGS_KEY = "dauson-farm-settings-v1";
 const AUTH_SESSION_DURATION = 6 * 60 * 60 * 1000;
 const LEGACY_STORAGE_KEYS = {
   rabbits: "dauson-rabbits-v2",
@@ -163,6 +166,18 @@ export default function FarmApp() {
   const [sex, setSex] = useState("All sexes");
   const [sort, setSort] = useState("tag-asc");
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [settings, setSettings] = useState<FarmSettings>(defaultFarmSettings);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(FARM_SETTINGS_KEY);
+      if (stored) {
+        setSettings({ ...defaultFarmSettings, ...JSON.parse(stored) });
+      }
+    } catch {
+      // fallback to default
+    }
+  }, []);
   const revisionRef = useRef(0);
 
   const applyDatabase = useCallback((database: FarmDatabase) => {
@@ -440,7 +455,7 @@ export default function FarmApp() {
     );
     otherStorage.removeItem(AUTH_SESSION_KEY);
     setAuthExpiresAt(expiresAt);
-    setToast("Login successful. Welcome back, Esther.");
+    setToast(`Login successful. Welcome back, ${settings.manager}.`);
     setAuthenticated(true);
   };
 
@@ -483,9 +498,7 @@ export default function FarmApp() {
               <Icon name="rabbit" className="h-6 w-6" />
             </div>
             <div>
-              <p className="font-serif text-[19px] font-bold tracking-tight">
-                Dauson Farm
-              </p>
+              <p className="font-serif text-[19px] font-bold tracking-tight">{settings.farmName}</p>
               <p className="text-[10px] font-semibold uppercase tracking-[.2em] text-emerald-100/60">
                 Farm OS
               </p>
@@ -536,7 +549,7 @@ export default function FarmApp() {
                 DA
               </div>
               <div className="min-w-0">
-                <p className="truncate text-xs font-semibold">Esther</p>
+                <p className="truncate text-xs font-semibold">{settings.manager}</p>
                 <p className="truncate text-[10px] text-emerald-50/45">
                   Farm administrator
                 </p>
@@ -627,6 +640,8 @@ export default function FarmApp() {
                 setEditingTask(task);
                 setTaskModal(true);
               }}
+              adminName={settings.manager}
+              farmName={settings.farmName}
             />
           )}
           {view === "rabbits" && (
@@ -693,6 +708,7 @@ export default function FarmApp() {
                 setEditingStock(record);
                 setStockModal(true);
               }}
+              dailyConsumptionKg={settings.dailyConsumptionKg}
             />
           )}
           {view === "finance" && (
@@ -721,11 +737,15 @@ export default function FarmApp() {
           )}
           {view === "settings" && (
             <Settings
-              saved={settingsSaved}
-              onSave={() => {
-                setSettingsSaved(true);
-                setToast("Farm settings saved");
-                window.setTimeout(() => setSettingsSaved(false), 1800);
+              settings={settings}
+              onSave={(updated) => {
+                setSettings(updated);
+                try {
+                  window.localStorage.setItem(FARM_SETTINGS_KEY, JSON.stringify(updated));
+                } catch {
+                  // ignore
+                }
+                setToast("Farm settings saved successfully");
               }}
             />
           )}

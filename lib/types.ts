@@ -99,3 +99,29 @@ export type FarmTask = {
   priority: "Normal" | "High";
   done: boolean;
 };
+
+export type FarmSettings = {
+  farmName: string;
+  manager: string;
+  phone: string;
+  currency: string;
+  address: string;
+  tagPrefix: string;
+  weightUnit: string;
+  gestationDays: number;
+  lowFeedAlertDays: number;
+  dailyConsumptionKg: number;
+};
+
+export const defaultFarmSettings: FarmSettings = {
+  farmName: "Dauson Farm",
+  manager: "Esther",
+  phone: "+234 803 000 0000",
+  currency: "NGN",
+  address: "Dauson Farm Estate, Ogun State, Nigeria",
+  tagPrefix: "DF-",
+  weightUnit: "kg",
+  gestationDays: 31,
+  lowFeedAlertDays: 7,
+  dailyConsumptionKg: 36.8,
+};

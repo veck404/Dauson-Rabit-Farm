@@ -214,7 +214,7 @@ export function Feed({
   const stockValue = inventory.reduce((sum, item) => sum + item.cost, 0);
   const lowStock = inventory.filter((item) => item.stockStatus !== "Good");
   const dailyConsumption = dailyConsumptionKg;
-  const daysCover = Math.floor(feedOnHand / dailyConsumption);
+  const daysCover = dailyConsumption > 0 ? Math.floor(feedOnHand / dailyConsumption) : 0;
   return (
     <Module
       title="Feed & farm inventory"

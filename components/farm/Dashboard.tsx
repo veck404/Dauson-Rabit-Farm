@@ -84,13 +84,13 @@ export function Dashboard({
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[.14em] text-[#6c8b7e]">
-            Thursday, 06 August 2026
+            {todayLabel}
           </p>
           <h2 className="mt-1 font-serif text-3xl font-bold tracking-tight text-[#183e34] sm:text-4xl">
-            Good morning, Esther.
+            {greeting}, {adminName}.
           </h2>
           <p className="mt-2 text-sm text-stone-500">
-            Here’s what is happening across Dauson Farm today.
+            Here’s what is happening across {farmName} today.
           </p>
         </div>
         <button

@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import type {
+  FarmSettings,
   BreedingRecord,
   FeedRecord,
   HealthRecord,
@@ -143,14 +145,31 @@ export function Reports({
 }
 
 export function Settings({
-  saved,
+  settings,
   onSave,
 }: {
-  saved: boolean;
-  onSave: () => void;
+  settings: FarmSettings;
+  onSave: (updated: FarmSettings) => void;
 }) {
+  const [form, setForm] = useState<FarmSettings>(settings);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setForm(settings);
+  }, [settings]);
+
+  const update = <K extends keyof FarmSettings>(key: K, value: FarmSettings[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(form);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <form onSubmit={handleSubmit} className="mx-auto max-w-4xl space-y-6">
       <div>
         <p className="eyebrow">Configuration</p>
         <h2 className="page-title">Farm settings</h2>
@@ -165,61 +184,108 @@ export function Settings({
             Farm name
             <input
               className="control mt-1.5"
-              defaultValue="Dauson Rabbit Farm"
+              value={form.farmName}
+              onChange={(e) => update("farmName", e.target.value)}
+              required
             />
           </label>
           <label className="field">
-            Manager
-            <input className="control mt-1.5" defaultValue="Esther" />
+            Manager / Administrator
+            <input
+              className="control mt-1.5"
+              value={form.manager}
+              onChange={(e) => update("manager", e.target.value)}
+              required
+            />
           </label>
           <label className="field">
             Phone
             <input
               className="control mt-1.5"
-              defaultValue="+234 803 000 0000"
+              value={form.phone}
+              onChange={(e) => update("phone", e.target.value)}
             />
           </label>
           <label className="field">
             Currency
-            <select className="control mt-1.5" defaultValue="NGN">
+            <select
+              className="control mt-1.5"
+              value={form.currency}
+              onChange={(e) => update("currency", e.target.value)}
+            >
               <option value="NGN">Nigerian Naira (₦)</option>
               <option value="USD">US Dollar ($)</option>
+              <option value="EUR">Euro (€)</option>
+              <option value="GBP">British Pound (£)</option>
             </select>
           </label>
           <label className="field sm:col-span-2">
             Farm address
             <textarea
               className="control mt-1.5 min-h-20"
-              defaultValue="Dauson Farm Estate, Ogun State, Nigeria"
+              value={form.address}
+              onChange={(e) => update("address", e.target.value)}
             />
           </label>
         </div>
       </Card>
       <Card className="p-6">
-        <h3 className="text-sm font-bold">Record preferences</h3>
+        <h3 className="text-sm font-bold">Record preferences & feeding</h3>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <label className="field">
             Rabbit tag prefix
-            <input className="control mt-1.5" defaultValue="DF-" />
+            <input
+              className="control mt-1.5"
+              value={form.tagPrefix}
+              onChange={(e) => update("tagPrefix", e.target.value)}
+            />
           </label>
           <label className="field">
             Weight unit
-            <select className="control mt-1.5">
-              <option>Kilograms (kg)</option>
-              <option>Pounds (lb)</option>
+            <select
+              className="control mt-1.5"
+              value={form.weightUnit}
+              onChange={(e) => update("weightUnit", e.target.value)}
+            >
+              <option value="kg">Kilograms (kg)</option>
+              <option value="lb">Pounds (lb)</option>
             </select>
           </label>
           <label className="field">
-            Default gestation period
-            <input className="control mt-1.5" defaultValue="31 days" />
+            Default gestation period (days)
+            <input
+              type="number"
+              min="28"
+              max="35"
+              className="control mt-1.5"
+              value={form.gestationDays}
+              onChange={(e) => update("gestationDays", Number(e.target.value))}
+            />
           </label>
           <label className="field">
-            Low feed alert
-            <input className="control mt-1.5" defaultValue="7 days remaining" />
+            Low feed alert (days cover)
+            <input
+              type="number"
+              min="1"
+              className="control mt-1.5"
+              value={form.lowFeedAlertDays}
+              onChange={(e) => update("lowFeedAlertDays", Number(e.target.value))}
+            />
+          </label>
+          <label className="field sm:col-span-2">
+            Estimated daily feed consumption (kg/day)
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              className="control mt-1.5"
+              value={form.dailyConsumptionKg}
+              onChange={(e) => update("dailyConsumptionKg", Number(e.target.value))}
+            />
           </label>
         </div>
         <div className="mt-6 flex justify-end">
-          <button onClick={onSave} className="btn-primary">
+          <button type="submit" className="btn-primary">
             {saved ? (
               <>
                 <Icon name="check" className="h-4 w-4" />
@@ -231,6 +297,6 @@ export function Settings({
           </button>
         </div>
       </Card>
-    </div>
+    </form>
   );
 }
