@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Dauson Farm OS · Rabbit Management",
-    short_name: "Dauson Farm",
+    short_name: "Rabbit Farm",
     description: "Complete digital rabbit farm operations, records, health, breeding, inventory, finance and reports.",
     start_url: "/",
     display: "standalone",
@@ -15,7 +15,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/icon.svg",
         sizes: "any",
         type: "image/svg+xml",
-        purpose: "maskable",
+        purpose: "any maskable",
       },
     ],
   };
