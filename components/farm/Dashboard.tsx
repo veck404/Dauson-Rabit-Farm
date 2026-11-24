@@ -40,6 +40,7 @@ export function Dashboard({
   addRabbit: () => void;
   addTask: () => void;
   editTask: (task: FarmTask) => void;
+  removeTask: (task: FarmTask) => void;
   adminName: string;
   farmName: string;
 }) {
